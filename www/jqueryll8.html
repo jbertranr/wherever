@@ -1,0 +1,790 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+    <head>
+        <title>jQM Complex Demo</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!-- meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=no; target-densityDpi=device-dpi"-->
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css" />
+        <link rel="stylesheet" href="http://leafletjs.com/dist/leaflet.css" />
+        <link rel="stylesheet" type="text/css" href="../js/leaflet-openweathermap/leaflet-openweathermap.css" />
+		<!-- link rel="stylesheet" href="../js/leaflet-locatecontrol/L.Control.Locate.css" / -->
+		<!--[if lt IE 9]>
+			<link rel="stylesheet" href="//rawgithub.com/domoritz/leaflet-locatecontrol/gh-pages/src/L.Control.Locate.ie.css"/>
+		<![endif]-->
+
+
+		
+		<style>		
+			#map { 
+				margin:-15px;
+				height: 100%;
+				width:100%; 
+			}
+		</style>
+        <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script type="text/javascript" src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+        <script type="text/javascript" src="http://leafletjs.com/dist/leaflet.js"></script>
+        <script type="text/javascript" src="../js/leaflet-openweathermap/leaflet-openweathermap.js"></script>
+        <script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>
+        <script src="../js/leaflet-plugins-master/layer/tile/Google.js"></script>
+		<!-- script src="../js/leaflet-locatecontrol/L.Control.Locate.js" ></script-->
+		<script type="text/javascript">	
+		
+		var visor = {
+			'map' : {}, // 	Objecte OpenLayers del mapa
+			'wpid' : 0,
+			'modeNavegacio' : null,
+			'modePunt' : null,
+			'nouPuntEdicio': null,
+			'popup' : null,
+			'greenIcon' : {},
+			'valoracio' : null,
+			'icon' : null,
+			'config' : { 'layers' : { 'base' : [], 'overlay' : [] }},
+			'posicioActual' : { 'trobat': 0, 'lat' : 0,	'lng' : 0, 'alt' : 0, 'acc' : 0 },
+			'POI' : [{  'nom' : null , 'descripcio': null , 'lat': null , 'lng':null, 'tema' : null, 'icona' : null}]	
+		}
+				
+		function ajustaFinestres(){			
+			var resizeTimer = null;			
+			if (resizeTimer) clearTimeout(resizeTimer);			
+			resizeTimer = setTimeout(function () {
+				$('#map').width($(window).width());
+				$('#map').height($(window).height() - $('#header').height() - $('#footer').height() - 5);
+				visor.map._onResize(); 	;
+			});
+		}
+		
+		function ajustaPortada(){			
+			var resizeTimer = null;			
+			if (resizeTimer) clearTimeout(resizeTimer);			
+			resizeTimer = setTimeout(function () {
+				$('#fotoPortada').height($(window).height());				
+			});
+		}
+		
+		function baseLayer(seleccionada){			
+			 $.each(visor.config.layers.base, function(i,item){
+				 if (visor.map.hasLayer(item)){
+					  visor.map.removeLayer(item);				  
+				 }			 
+			 });
+			 
+			 seleccionada.addTo(visor.map);
+		}
+		
+		function overlayLayer(seleccionada){			
+			 seleccionada.addTo(visor.map);
+			 seleccionada.setOpacity(0.5);			 
+		}
+		
+		function removeAllOverlay(){
+			 $.each(visor.config.layers.overlay, function(i,item){
+				 if (visor.map.hasLayer(item)){
+					  visor.map.removeLayer(item);
+					  return false;
+				 }			 
+			 });			
+		}
+		
+		function nextOverlayLayer(count){			 
+			var overlayLayersLength = visor.config.layers.overlay.length;
+			var mostra = null;			
+			
+			$.each(visor.config.layers.overlay, function(i,item){
+				mostra = i + count;
+				// Selecciona la capa overlay activa   
+				if (visor.map.hasLayer(item)){
+					// Si és el darrer i és demana el següent torna a començar
+					if (i == overlayLayersLength - 1 && count > 0 ){
+						mostra = 0;				
+					}
+					// Si és el primer i es demana l'anterior
+					if (i == 0 && count < 0 ){
+						mostra = overlayLayersLength - 1;
+					}
+					removeAllOverlay();
+					overlayLayer(visor.config.layers.overlay[mostra]);
+					$('#layerName').html(visor.config.layers.overlay[mostra].options.id);
+					return false;
+				}	
+				// Si no hi ha cap capa activa selecciona la primera
+				if (i == overlayLayersLength - 1) {
+					overlayLayer(visor.config.layers.overlay[0]);
+					$('#layerName').html(visor.config.layers.overlay[0].options.id);
+				}				
+			});					
+		}	
+	
+		function centraPosicioActual(punt,zoom){
+			if (visor.posicioActual.lat != 0){				
+				if(zoom > 1){
+					visor.map.setView([punt.lat, punt.lng], zoom);
+				}
+				else{
+					visor.map.setView([punt.lat, punt.lng]);			
+				}
+			}
+			else{
+			$( "#popupActPos").popup( "close" )	
+			}
+		}
+		
+		function successGeo(position) {
+			var latitude = position.coords.latitude;
+			var longitude = position.coords.longitude;
+			var altitude = position.coords.altitude;
+			var accuracy = position.coords.accuracy;
+			//visor.map.setView([latitude, longitude], 19);
+			visor.posicioActual = { 'trobat' : 1,
+									'lat' : latitude,
+									'lng' : longitude,
+									'alt' : altitude,
+									'acc' : accuracy };
+									
+			if (latitude == 0 ) { 
+					alert ('Posició no vàlida');
+					return false;	
+				}
+						
+			if (visor.modePunt == 'seguiment' ) {
+				L.marker([visor.posicioActual.lat, visor.posicioActual.lng],{icon:visor.smallIcon}).addTo(visor.map);
+			}
+			
+			if (visor.modeNavegacio == 'centrat' ){
+				visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);			
+			}
+		}
+			
+		function errorGeo(error) {				
+			visor.posicioActual = { 'trobat' : 0,
+				'lat' : 0,
+				'lng' : 0,
+				'alt' : 0,
+				'acc' : 0 };
+			alert('No estan activades les opcions de geolocalització');	
+		};
+		
+		// Create the XHR object.
+		function createCORSRequest(method, url) {
+		  var xhr = new XMLHttpRequest();
+		  if ("withCredentials" in xhr) {
+		    // XHR for Chrome/Firefox/Opera/Safari.
+		    xhr.open(method, url, true);
+		  } else if (typeof XDomainRequest != "undefined") {
+		    // XDomainRequest for IE.
+		    xhr = new XDomainRequest();
+		    xhr.open(method, url);
+		  } else {
+		    // CORS not supported.
+		    xhr = null;
+		  }
+		  return xhr;
+		}
+
+		// Helper method to parse the title tag from the response.
+		function getTitle(text) {
+		  return text.match('<title>(.*)?</title>')[1];
+		}
+
+		// Make the actual CORS request.
+		function makeCorsRequest(url,params) {
+		  // All HTML5 Rocks properties support CORS.
+		
+		  var xhr = createCORSRequest('POST', url);
+		  if (!xhr) {
+		    alert('CORS not supported');
+		    return;
+		  }
+		
+		  //xhr.setRequestHeader('Content-Type', 'application/text/plain'); 
+		  xhr.onreadystatechange = function() {
+			    if(xhr.readyState == 4 && xhr.status == 200) {
+			        alert('Tested OK');
+			        var text = xhr.responseText;
+			        alert('Response from CORS request to ' + url + ': ' + text);
+			    }
+			};
+			
+		
+		  		  // Response handlers.
+		  xhr.onload = function() {
+		    var text = xhr.responseText;
+		    var title = getTitle(text);
+		    return title;
+		  };
+
+		  xhr.onerror = function() {
+		    alert('Woops, there was an error making the request.');
+		  };
+
+		  xhr.send(params);
+		}
+		
+		function carregaDades(){
+
+			var DATA_SERVICE_URL = "https://script.google.com/macros/s/AKfycbw0Z4GBFA_vj2b1CAWMiJA9Zh6Gph770Eth8L8sTuUtth0wQ8o/exec?jsonp=callback";
+			var scriptElement = document.createElement('script');
+			scriptElement.src = DATA_SERVICE_URL;
+			document.getElementsByTagName('head')[0].appendChild(scriptElement);
+		
+		}
+		
+		function callback(data) {			
+			for (var i = 0; i < data.length - 1 ; i++) {			 
+				
+				visor.POI[i] = { 'nom' : data[i+1][3],
+								 'lat' : data[i+1][1].split('at: ')[1],
+								 'lng' : data[i+1][2].split('ng: ')[1],
+								 'descripcio' : data[i+1][4],
+								 'valoracio' : data[i+1][5],
+								 'icon' : data[i+1][6] };
+				
+				var iconMap = L.icon({
+					iconUrl: '../images/' + data[i+1][6],
+					shadowUrl: '',
+					iconSize:     [30, 30], // size of the icon
+					shadowSize:   [25, 32], // size of the shadow
+					iconAnchor:   [1, 1], // point of the icon which will correspond to marker's location
+					shadowAnchor: [4, 62],  // the same for the shadow
+					popupAnchor:  [15, 0 ] // point from which the popup should open relative to the iconAnchor
+				});		  
+			  			
+				//if ( data[i][6] !='../images/platja.png' ){ alert ( visor.greenIcon.iconUrl ); }
+				L.marker([visor.POI[i].lat, visor.POI[i].lng],{icon:iconMap}).addTo(visor.map)
+				.bindPopup(visor.POI[i].icon);
+			}
+			
+			creaLlistaPOI()	;
+			//visor.map.setView([data[1][1].split('at: ')[1], data[1][1]].split('ng: ')[1], 7);					
+		}
+
+
+		function creaLlistaPOI() {			
+			var elementLlista = null;
+			for (var i = 0; i < visor.POI.length  ; i++) {	
+				$('#pageListContentUl')
+					.append("<li> <a href='index.html'> "
+						+  " 	<h2> " + visor.POI[i].nom + "</h2> "
+						+  " 	<p><strong>" + visor.POI[i].descripcio + "</strong></p> "
+						+  " 	<p></p>"
+						+  "	<p class='ui-li-aside'><strong>" + i + 1 +"</strong>PM</p>  "
+						+  "  </a></li>");
+			}
+			//pageList.trigger('pagecreate');
+			$('#pageListElementUi').listview('refresh');			
+		}	
+		
+		
+		/*function posicionaPuntActual(){
+			var callbacks = $.Callbacks();
+			callbacks.add( geoFindMe );
+			callbacks.add( centra );
+			callbacks.fire();
+		}
+		
+		function centra(){
+			console.log('centra');
+			
+			if (visor.posicioActual.lat == 0) {
+				//alert('sense ubicació');
+			}
+			else {
+				visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 13);
+			}		
+		}
+		*/
+		
+		function activaGeoposicionament(){		
+			var geo_options = {
+				enableHighAccuracy: true,
+				maximumAge : 30000,
+				timeout : 27000
+			};			
+	
+			visor.wpid = navigator.geolocation.watchPosition(successGeo, errorGeo, geo_options);
+	//		mostraMissatge('buscantPosició');
+		}
+		
+		/*function mostraPunt(){
+			var callbacks = $.Callbacks();
+			callbacks.add( geoFindMe );
+			callbacks.add( actualitzaForm );
+			callbacks.fire();
+		}*/
+		
+		function recuperaAdreca(punt){
+			$.getJSON("http://nominatim.openstreetmap.org/reverse?json_callback=?", 
+				{ format: "json", lat: punt.lat, lon: punt.lng, zoom: 18, addressdetails: 1 },
+				function(data) { 
+					$('#descripcio').val(data.display_name);
+			});			
+		}
+				
+		function recuperaDades( ) {
+		
+			var frm = {URL: null, param:[] };			
+			frm.param[0] = 0;			
+			frm.param[1] = $('#basic').val();
+			
+			if (visor.map.lat = 0) { //TODO pendemt de revisar
+				frm.param[2] = 'lng: ' + String(visor.nouPuntEdicio.lng);
+				frm.param[3] = 'lat: ' + String(visor.nouPuntEdicio.lat);
+			}
+			else {
+				frm.param[2] = 'lng: ' + String(visor.nouPuntEdicio.lng);
+				frm.param[3] = 'lat: ' + String(visor.nouPuntEdicio.lat);
+			}
+
+			frm.param[4] =  $('#descripcio').val();
+			frm.param[5] =  $('#slider-1').val();
+			//frm.param[5] =  $('#slider-1').val();
+			//$( "input[name*='man']" ).val( "has man in it!" );
+			
+		//	$("input[name*='radio-choice']").each(function(){ 
+		//		alert(this.val() ) 
+		// 	});
+			var options = $( ".selector" ).controlgroup( "option" );
+			
+			
+			frm.param[6] =  $('input[name="radio-choice"]:checked', '#varis').val() + '.png';			
+			
+			frm.URL = "https://docs.google.com/forms/d/1xtHPIhEMG68gwCsxX2HFml4mXxh34JMCT6ShnTEBOJI/formResponse";
+			
+			var adrecaURL = 'http://nominatim.openstreetmap.org/reverse?format=json&zoom=18&addressdetails=1';
+			
+
+			
+			
+			/*lat='
+				+  visor.posicioActual.lat 
+				+  '&lon='
+				+   visor.posicioActual.lng;
+			
+
+	
+			$.ajax({
+		        url: adrecaURL,
+		         xhrFields: {
+					withCredentials: true
+				},				
+				data: {
+		            'lat': visor.posicioActual.lat,
+		            'lon': visor.posicioActual.lng
+		        },
+		        type: "POST",
+		        dataType: "json",
+		        //contentType: "text/xml; charset=\"utf-8\"",
+				crossDomain: true,
+		        success: function (data, textStatus, XMLHttpRequest) {
+		            console.log(data);
+		        },
+		        error: function (XMLHttpRequest, textStatus, errorThrown) {
+		            $("#dialog-form").dialog("close");
+		            console.log("problemes");
+		            console.log(textStatus);
+		        }
+		    });
+			*/
+		
+			return frm;	
+		}
+			
+		function onMapClick(e) {
+			
+			var contingutPopup =  '<div data-demo-html="true">'
+								+ ' 	<form><fieldset data-role="controlgroup">'
+								+ '			<legend>Ubicació:</legend>'
+								+ ' 		<input type="radio" name="radio-1" id="radio-1" value="GPS" checked="checked" />'
+								+ ' 		<label for="radio-1">Segons GPS - Ubicació Actual</label>'				
+								+ ' 		<input type="radio" name="radio-1" id="radio-2" value="Mapa"  />'
+								+ '			<label for="radio-2">Segons Mapa - Ubicació del mapa</label>'		     	
+								+ ' 	</fieldset></form>'
+								+ ' </div>';		
+			visor.nouPuntEdicio = e.latlng;
+			visor.popup
+				.setLatLng(e.latlng)
+				.setContent("<div onclick='recuperaAdreca( L.latLng(" 
+							+  e.latlng.lat + "," 
+							+  e.latlng.lng + "))' > Clica <a href='#pagetwo'>aquí</a> per guardar el punt"
+						//	+  e.latlng.toString() 
+							+ "</div>")
+						//	+ contingutPopup )
+				.openOn(visor.map);
+		}
+		
+		function inicialitzaMapa(){
+			visor.map = L.map('map');
+			
+			visor.popup = L.popup();
+
+			visor.map.on('click', onMapClick);
+			
+			visor.greenIcon = L.icon({
+				iconUrl: '../images/platja.png',
+				shadowUrl: '',
+				iconSize:     [30, 30], // size of the icon
+				shadowSize:   [25, 32], // size of the shadow
+				iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
+				shadowAnchor: [4, 62],  // the same for the shadow
+				popupAnchor:  [15, 0 ] // point from which the popup should open relative to the iconAnchor
+			});
+			
+			visor.smallIcon = L.icon({
+				iconUrl: '../images/platja.png',
+				shadowUrl: '',
+				iconSize:     [5, 5], // size of the icon
+				shadowSize:   [3, 3], // size of the shadow
+				iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
+				shadowAnchor: [3, 3],  // the same for the shadow
+				popupAnchor:  [0, 0 ] // point from which the popup should open relative to the iconAnchor
+			});
+			
+			
+     		
+			// Definició de capes
+			
+			var Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+				attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+			});
+			
+			
+			
+			var icc = L.tileLayer('http://geoserveis.icc.cat/icc_mapesbase/wms/service', {
+					id:'ICGC',
+					layers: 'mtc5m',
+				    format: 'image/png',
+				   // transparent: true,
+				    attribution: 'ICGC'
+				});			
+			
+			var osm = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+				id: 'osm',
+				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+			});
+			
+			var esri = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
+				id:'esri',
+				attribution: 'Tiles &copy; Esri &mdash; Source: US National Park Service',
+				maxZoom: 8
+			});
+			
+			
+			var nexrad = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi", {
+				id:'nexrad',
+				layers: 'nexrad-n0r-900913',
+			    format: 'image/png',
+			    transparent: true,
+			    attribution: "Weather data © 2012 IEM Nexrad"
+			});
+			
+			var SST = L.tileLayer.wms("http://myocean.artov.isac.cnr.it/thredds/wms/SST_MED_SST_L4_NRT_OBSERVATIONS_010_004_c_V2",{
+				id:'SST',
+				layers: 'analysed_sst',
+			    format: 'image/png',
+			    transparent: true,
+			    attribution: ""
+			});
+				
+				
+			var SSWVW= L.tileLayer.wms("http://gnoodap.bo.ingv.it/thredds/wms/myov03-med-ingv-cur-an-fc",{
+				id:'SSWVW',
+				layers: 'surface_sea_water_velocity_produced_by_sea_surface_waves',
+			    format: 'image/png',
+			    transparent: true,
+			    attribution: ""
+			});
+					
+			var clouds = L.OWM.clouds({id:'cloud'});
+			
+			var temp = L.OWM.temperature({id:'temp'});
+			
+			var cloudscls = L.OWM.cloudsClassic({id:'cloudscl'});
+		    
+			var precipitation = L.OWM.precipitation({id:'precipitation'});
+		    
+			var precipitationcls = L.OWM.precipitationClassic({id:'precipitationcls'});
+		    
+			var rain = L.OWM.rain({id:'rain'});
+		    
+			var raincls = L.OWM.rainClassic({id:'raincls'});
+		    
+			var snow = L.OWM.snow({id:'snow'});
+		    
+			var pressure = L.OWM.pressure({id:'pressure'});
+		    
+			var pressurecntr = L.OWM.pressureContour({id:'pressurecntr'});
+		    
+			var temp = L.OWM.temperature({id:'temp'});
+		    
+			var wind = L.OWM.wind({id:'wind'});
+
+			var ggl = new L.Google('');
+			
+			//var ggl2 = new L.Google('TERRAIN');
+	
+			
+			visor.config.layers.base = [osm , Esri_WorldImagery ];
+			visor.config.layers.overlay = [SST, SSWVW, clouds, cloudscls, temp, precipitation, precipitationcls, rain, raincls, snow, pressure, pressurecntr, wind ];
+			baseLayer(osm);
+			visor.map.setView([51.505, -0.09], 5);	
+
+			var baseMaps = {
+				    "Mapa": visor.config.layers.base[0],
+				    "Satèl·lit": visor.config.layers.base[1]
+			};
+			
+			var overlayMaps ={
+					"Núvols": visor.config.layers.overlay[2],
+					"Temperature": visor.config.layers.overlay[6]
+			};
+			
+			
+			
+		
+		}	
+		
+		function actualitzaForm( frm ) {
+				
+			$.ajax({
+		        url: frm.URL,
+		         xhrFields: {
+					withCredentials: true
+				},				
+				data: {
+		           // formkey: '1xtHPIhEMG68gwCsxX2HFml4mXxh34JMCT6ShnTEBOJI',		            		  	
+		            'draftResponse': 	"[,,'9343310141278937']",
+		            'entry.1118535733': frm.param[2],
+		            'entry.1366413431': frm.param[3],
+		            'entry.2081033554': frm.param[4],
+		            'entry.334554466': frm.param[1],
+		           	'entry.657320122': frm.param[5],
+					'entry.806099471': frm.param[6],
+		            'fbzx': 9343310141278937,
+		            'pageHistory': 0
+		        },
+		        type: "POST",
+		        dataType: "xml",
+		        crossDomain: true,
+		        success: function (data, textStatus, XMLHttpRequest) {
+		            $("#dialog-form").dialog("close");
+		            console.log("success");
+		            console.log(data);
+		        },
+		        error: function (XMLHttpRequest, textStatus, errorThrown) {
+		            $("#dialog-form").dialog("close");
+		            console.log("error");
+		            console.log(textStatus);
+		        }
+		    });
+		}
+		
+		function creaHome(){
+			
+	        //$.support.cors                 = true;
+	        //$.mobile.allowCrossDomainPages = true;
+	        //$.mobile.pushStateEnabled      = false;
+			 
+			//var titolHeader = 'Aquest és el nou títol';
+			//visor.modePunt = 'seguiment';
+			//visor.modeNavegacio = 'centrat' ;
+			//activaGeoposicionament(); 
+			//visor.modePunt == 'punt' ;
+			//	 $('#index').trigger('pagecreate');
+			//ajustaFinestres();		
+			//var lc = L.control.locate().addTo(visor.map);
+			//lc.locate(); 
+		 }
+
+		$( document ).on('pageshow' ,'#portada', function(){ 
+			$(window).bind('resize', function () {ajustaPortada();});
+			activaGeoposicionament();
+			carregaDades();					 
+			ajustaPortada();
+			inicialitzaMapa();			
+		 });
+		 
+		$( document ).on('pagebeforehide' ,'#pagetwo', function(){ 
+			carregaDades();
+		});
+
+		$( window ).on( 'orientationchange', function( event ) {ajustaPortada(); });
+		 
+		$( document ).on('pageshow','#pageone', function(){
+							
+			$(window).bind('resize', function () {ajustaFinestres();ajustaPortada();});
+		
+			ajustaFinestres();
+		});
+		
+			
+			//L.control.layers(baseMaps, overlayMaps).addTo(visor.map);
+	
+			// add an OpenStreetMap tile layer
+			// add a marker in the given location, attach some popup content to it and open the popup
+			/*
+				L.marker([51.5, -0.09]).addTo(map)
+				.bindPopup('A pretty CSS3 popup. <br> Easily customizable.')
+				.openPopup();
+			*/	
+
+		
+
+/*		function onLocationFound(e) {			
+			var radius = e.accuracy / 2;			
+			L.marker(e.latlng).addTo(map)
+			.bindPopup("You are within " + radius + " meters from this point").openPopup();			
+			L.circle(e.latlng, radius).addTo(map);
+		}
+
+		function onLocationError(e) {
+			L.map('map').setView([51.505, -0.09], 13);
+		}
+*/
+
+		function actualitzaFormulari(){		
+		}
+	
+	</script>
+	
+    </head>
+    <body>
+    	 <div data-role="page" id="portada" style="width:100%;height:100%;margin:0px;">  
+            <div data-role="content" style="width:100%;height:100%;padding:0em" id ="fotoPortada" >   		
+           		<a href="#pageone"><img  style="height:100%;width:102 %;" src="../images/home.png" />	</a>
+			</div>
+        </div>
+    	 
+    	<div data-role="page" id="pageone">  
+            <div data-role="header"  role="banner" id = "header"> 
+				<a href="#portada" class="ui-btn-left ui-btn ui-icon-home ui-btn-icon-left ui-shadow ui-corner-all">Home</a>
+				<h1 class="ui-title" role="heading" aria-level="1">SuperDuper</h1> 
+				<a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow ui-corner-all">Guardar</a>			
+			</div>           
+            <div data-role="content" id="contMapa"> 
+
+					<div id="map"></div>
+		
+
+			</div>               
+            <div data-role="footer"  id = "footer"> 
+				<div data-role="data-demo-html">
+					<div data-role="popup" id="popupActPos" class="ui-content" style="max-width:280px">
+						<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+						<p> Actualitzant la posició</p>
+					</div>	
+			    	<a onclick="baseLayer(visor.config.layers.base[0])" href="#" class="ui-btn ">Map</a>
+			    	<a onclick="baseLayer(visor.config.layers.base[1])" href="#" class="ui-btn ">Sat</a>
+					<a href="#pagetwo" onclick="recuperaAdreca(visor.map.getBounds().getCenter())"  class="ui-btn">Captura</a>
+					<a onclick=" visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);" class="ui-btn">Pos. Actual</a>
+					<a style="margin-top: 0px;" onclick="nextOverlayLayer(-1)" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-btn ui-icon-arrow-l"></a>
+			    	<a style="margin-top: 0px;width:120px" id="layerName" href="#pageList" class="ui-btn ">Layers</a>
+					<a  style="margin-top: 0px;" onclick="nextOverlayLayer(1)" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-btn ui-icon-arrow-r"></a>
+      			</div>			
+			</div>
+        </div>
+		
+		 <div data-role="page" id="pageList">  
+            <div data-role="header"  role="banner" id = "pageListHeader"> 
+				<a href="#pageone" class="ui-btn-left ui-btn ui-icon-back ui-btn-icon-left ui-shadow ui-corner-all">Home</a>
+				<h1 class="ui-title" role="heading" aria-level="1">Near Events</h1> 
+				<a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow ui-corner-all">Guardar</a>			
+			</div>           
+            <div data-role="content" id="pageListContent"> 
+				<ul data-role="listview" data-inset="true" id="pageListContentUl">
+					<li data-role="list-divider">Friday, October 8, 2010 
+						<span class="ui-li-count">5</span>
+					</li>
+					<li>	
+						<a href="index.html">
+							<h2>Stephen Weber</h2>
+							<p><strong>You've been invited to a meeting at Filament Group in Boston, MA</strong></p>
+							<p>Hey Stephen, if you're available at 10am tomorrow, we've got a meeting with the jQuery team.</p>
+							<p class="ui-li-aside"><strong>6:24</strong>PM</p>
+						</a>
+					</li>
+					<li>	
+						<a href="index.html">
+							<h2>Stephen Weber</h2>
+							<p><strong>You've been invited to a meeting at Filament Group in Boston, MA</strong></p>
+							<p>Hey Stephen, if you're available at 10am tomorrow, we've got a meeting with the jQuery team.</p>
+							<p class="ui-li-aside"><strong>6:24</strong>PM</p>
+						</a>
+					</li>		
+				</ul>
+	
+			</div>               
+            <div data-role="footer"  id = "pageListfooter"> 
+				<div data-role="data-demo-html">
+					<div data-role="popup" id="popupActPos" class="ui-content" style="max-width:280px">
+						<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+						<p> Actualitzant la posició</p>
+					</div>	
+			    	<a onclick="baseLayer(visor.config.layers.base[0])" href="#" class="ui-btn ">Map</a>
+			    	<a onclick="baseLayer(visor.config.layers.base[1])" href="#" class="ui-btn ">Sat</a>
+					<a href="#pagetwo" onclick="recuperaAdreca(visor.map.getBounds().getCenter())"  class="ui-btn">Captura</a>
+					<a onclick=" visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);" class="ui-btn">Pos. Actual</a>
+					<a style="margin-top: 0px;" onclick="nextOverlayLayer(-1)" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-btn ui-icon-arrow-l"></a>
+			    	<a style="margin-top: 0px;width:120px" id="layerName" href="#" class="ui-btn ">Layers</a>
+					<a  style="margin-top: 0px;" onclick="nextOverlayLayer(1)" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-btn ui-icon-arrow-r"></a>
+      			</div>			
+			</div>
+        </div>
+		
+  	   
+	   
+	   <div data-role="page" data-dialog="true" data-transition="slidedown" id="pagetwo">
+		  <div data-role="header">
+		    <h1>Informació associada amb el punt triat</h1>
+		  </div>
+		  <!--a href="#popupBasic" data-rel="popup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-transition="pop">Basic Popup</a>
+			<div data-role="popup" id="popupBasic">
+				<p>This is a completely basic popup, no options set.</p>
+			</div -->
+		  
+		  <div data-role="main" class="ui-content">
+		  	 <form id='varis' action="actualitzaForm($('#basic').val(), '11','11','11','11');" method="post">		    	
+				<label for="basic">Codi Propi</label>
+  				<input type="text" name="name" id="basic" value=""  />
+  				<label for="basic">Descripció</label>
+  				<input type="text" name="descripcio" id="descripcio" value=""  />  				
+		       	<label for="slider-1">Valoració</label>
+				<input type="range" name="slider-1" id="slider-1" value="50" step="10" min="0" data-highlight="true" max="100" />					
+				<!--fieldset data-role="controlgroup">
+					<legend>Ubicació:</legend>
+			     	<input type="radio" name="radio-1" id="radio-1" value="GPS" checked="checked" />
+			     	<label for="radio-1">Segons GPS - Ubicació Actual</label>				
+			     	<input type="radio" name="radio-1" id="radio-2" value="Mapa"  />
+			     	<label for="radio-2">Segons Mapa - Ubicació del mapa</label>		     	
+				</fieldset-->				
+				
+				<fieldset data-role="controlgroup">
+					<legend>Tria grup:</legend>
+			     	<input type="radio" name="radio-choice" id="radio-choice-1" value="platja" checked="checked" />
+			     	<label for="radio-choice-1">Platja</label>				
+			     	<input type="radio" name="radio-choice" id="radio-choice-2" value="muntanya"  />
+			     	<label for="radio-choice-2">Muntanya</label>				
+			     	<input type="radio" name="radio-choice" id="radio-choice-3" value="camp"  />
+			     	<label for="radio-choice-3">Camp</label>				
+			     	<input type="radio" name="radio-choice" id="radio-choice-4" value="ciutat"  />
+			     	<label for="radio-choice-4">Ciutat</label>
+				</fieldset>							
+				
+		    	<input value="Enviar Punt" type="button" onclick="var dades=recuperaDades(); actualitzaForm(dades); $.mobile.changePage($('#pageone'), 'pop', false, true);"> 
+				
+		    	<!--input value="Button" type="button" onclick=" actualitzaForm('DD',visor.map.getBounds().getCenter().lng,visor.map.getBounds().getCenter().lat, ', $('#slider-1').val());"-->
+				
+		    </form>
+		    <a href="#pageone">Go to Page One</a>
+		  </div>
+		
+		  <div data-role="footer">
+		    <h1>Footer Text In Dialog</h1>
+		  </div>
+		</div>
+		
+		
+		
+		
+    </body>
+</html>   
