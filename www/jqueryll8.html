@@ -6,7 +6,7 @@
         <!-- meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=no; target-densityDpi=device-dpi"-->
 		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css" />
         <link rel="stylesheet" href="http://leafletjs.com/dist/leaflet.css" />
-        <link rel="stylesheet" type="text/css" href="../js/leaflet-openweathermap/leaflet-openweathermap.css" />
+        <link rel="stylesheet" type="text/css" href="js/leaflet-openweathermap/leaflet-openweathermap.css" />
 		<!-- link rel="stylesheet" href="../js/leaflet-locatecontrol/L.Control.Locate.css" / -->
 		<!--[if lt IE 9]>
 			<link rel="stylesheet" href="//rawgithub.com/domoritz/leaflet-locatecontrol/gh-pages/src/L.Control.Locate.ie.css"/>
@@ -24,9 +24,9 @@
         <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
         <script type="text/javascript" src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
         <script type="text/javascript" src="http://leafletjs.com/dist/leaflet.js"></script>
-        <script type="text/javascript" src="../js/leaflet-openweathermap/leaflet-openweathermap.js"></script>
+        <script type="text/javascript" src="js/leaflet-openweathermap/leaflet-openweathermap.js"></script>
         <script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>
-        <script src="../js/leaflet-plugins-master/layer/tile/Google.js"></script>
+        <script src="js/leaflet-plugins-master/layer/tile/Google.js"></script>
 		<!-- script src="../js/leaflet-locatecontrol/L.Control.Locate.js" ></script-->
 		<script type="text/javascript">	
 		
@@ -241,7 +241,7 @@
 								 'icon' : data[i+1][6] };
 				
 				var iconMap = L.icon({
-					iconUrl: '../images/' + data[i+1][6],
+					iconUrl: 'images/' + data[i+1][6],
 					shadowUrl: '',
 					iconSize:     [30, 30], // size of the icon
 					shadowSize:   [25, 32], // size of the shadow
@@ -265,7 +265,7 @@
 			for (var i = 0; i < visor.POI.length  ; i++) {	
 				$('#pageListContentUl')
 					.append("<li> <a href='index.html'> "
-						+  " 	<h2> " + visor.POI[i].nom + "</h2> "
+						+  " 	<h2> <img width=32 height=32 src='images/" + visor.POI[i].icon + "' />"  + visor.POI[i].nom + "</h2> "
 						+  " 	<p><strong>" + visor.POI[i].descripcio + "</strong></p> "
 						+  " 	<p></p>"
 						+  "	<p class='ui-li-aside'><strong>" + i + 1 +"</strong>PM</p>  "
@@ -421,7 +421,7 @@
 			visor.map.on('click', onMapClick);
 			
 			visor.greenIcon = L.icon({
-				iconUrl: '../images/platja.png',
+				iconUrl: 'images/platja.png',
 				shadowUrl: '',
 				iconSize:     [30, 30], // size of the icon
 				shadowSize:   [25, 32], // size of the shadow
@@ -431,7 +431,7 @@
 			});
 			
 			visor.smallIcon = L.icon({
-				iconUrl: '../images/platja.png',
+				iconUrl: 'images/platja.png',
 				shadowUrl: '',
 				iconSize:     [5, 5], // size of the icon
 				shadowSize:   [3, 3], // size of the shadow
@@ -519,7 +519,7 @@
 		    
 			var wind = L.OWM.wind({id:'wind'});
 
-			var ggl = new L.Google('');
+			//	var ggl = new L.Google('');
 			
 			//var ggl2 = new L.Google('TERRAIN');
 	
@@ -651,7 +651,7 @@
     <body>
     	 <div data-role="page" id="portada" style="width:100%;height:100%;margin:0px;">  
             <div data-role="content" style="width:100%;height:100%;padding:0em" id ="fotoPortada" >   		
-           		<a href="#pageone"><img  style="height:100%;width:102 %;" src="../images/home.png" />	</a>
+           		<a href="#pageone"><img  style="height:100%;width:102 %;" src="images/home.png" />	</a>
 			</div>
         </div>
     	 
