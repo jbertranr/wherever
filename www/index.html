@@ -51,6 +51,7 @@
 			resizeTimer = setTimeout(function () {
 				$('#map').width($(window).width());
 				$('#map').height($(window).height() - $('#header').height() - $('#footer').height() - 5);
+				//$('#pageListContent').height($(window).height() - $('#header').height() - $('#footer').height() - 5);
 				visor.map._onResize(); 	;
 			});
 		}
@@ -154,6 +155,7 @@
 			if (visor.modeNavegacio == 'centrat' ){
 				visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);			
 			}
+			creaLlistaPOI()	;
 		}
 			
 		function errorGeo(error) {				
@@ -255,7 +257,6 @@
 				.bindPopup(visor.POI[i].icon);
 			}
 			
-			creaLlistaPOI()	;
 			//visor.map.setView([data[1][1].split('at: ')[1], data[1][1]].split('ng: ')[1], 7);					
 		}
 
@@ -278,14 +279,19 @@
 			var cub3 = null;
 			var cub4 = null;
 			var softColor = null;
+			var distancia = null;
 			for (var i = 0; i < visor.POI.length  ; i++) {	
-				softColor = (parseInt(i/2) == i/2) ? "#ffffff" : "#ffffff";
-				cub1 = creaCubDades("Distància","12","Km");
+				softColor = (parseInt(i/2) == i/2) ? "#ffffff" : "#ffffff";				
+				distancia =  parseInt(L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng))/1000);
+				cub1 = creaCubDades("Distància",distancia,"Km");
 				cub2 = creaCubDades("Recorregut","99","min");
 				cub3 = creaCubDades("Comença","10:00","hh:mm");
 				cub4 = creaCubDades("Acaba","19:00","hh:mm");
-     			$('#pageListContent').append("<div style='width:100%;height:150px;clear:both;border-bottom: 1px dotted #dddddd;background-color:" + softColor + "'> "
-						+  "  		<div style='padding:0em;width:160px;height:auto;clear:both;float:left;'> "
+     			
+				
+				
+				$('#pageListContent').append("<div style='width:100%;height:150px;clear:both;border-bottom: 1px dotted #dddddd;background-color:" + softColor + "'> "
+						+  "  		<div style='padding:0em;width:160px;height:auto;clear:both;float:right;'> "
 						+     		    cub1
 						+   		    cub2
 						+   		    cub3
@@ -294,8 +300,8 @@
 						+  "        <div style='float:left;width:125px'><img style='float:left' width=100 src='images/home.png' /></div>"
 					    // +  "     <img width=16 height=16 src='images/" + visor.POI[i].icon + "' class='ui-li-icon ui-corner-none'>"
 						+  " 	    <div style='height:auto;width:100%;;margin-left:20px	'><div style='margin-left:20px; font-size: 1.8em; cursor:pointer;color:#44aa88;' onclick='window.open(\"http://www.google.com\")'> " + visor.POI[i].nom + "</div> "
-						+  " 	    <div style='width:100%;font-size:0.8em;color:#8f8f8f'>" + visor.POI[i].descripcio + "</div></div> "
 						+  "	    <p class='ui-li-aside'><strong>" + i + 1 +"</strong></p>  "
+						+  " 	    <div style='width:100%;font-size:0.8em;color:#8f8f8f'>" + visor.POI[i].descripcio + "</div></div> "
 						+  " </div> ");
 			}
 			//pageList.trigger('pagecreate');
