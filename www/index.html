@@ -259,18 +259,44 @@
 			//visor.map.setView([data[1][1].split('at: ')[1], data[1][1]].split('ng: ')[1], 7);					
 		}
 
+		
+		function creaCubDades( titol, valor, unitat){
+			var cub = 	""
+						// +  "    <a style='cursor:default' href=''> "
+						+  "        <div style=' text-align:center; height:auto; margin-top: 0em; margin-left:10px;float: left; color: rgb(188, 188, 188); font-family: Helvetica;width: 60px; '>"
+						+  "			<div style=' font-size: 0.8em;  height: 10px; width:100%;margin-top:10px' >" + titol +  "</div> " 
+						+  "			<div style=' margin-top:0.2em;font-size: 1.5em;  height: 26px; ; color: #ff8c00;width:100%' > " + valor +  "</div>"
+						+  "            <div style=' font-size:0.8em;margin-top:0em;height:15px'> " + unitat + " </div> "
+						+  "		</div>"	;
+			return cub;					
+		}
+				
 		function creaLlistaPOI() {			
 			var elementLlista = null;
+			var cub1 = null;
+			var cub2 = null;
+			var cub3 = null;
+			var cub4 = null;
+			var softColor = null;
 			for (var i = 0; i < visor.POI.length  ; i++) {	
-				$('#pageListContentUl')
-					.append("<li> "
-						+  "    <a style='cursor:default' href=''> "
-						+  "    	<img src='images/home.png' >"
-						// +  "    <img width=16 height=16 src='images/" + visor.POI[i].icon + "' class='ui-li-icon ui-corner-none'>"
-						+  " 	    <h2 style='cursor:pointer' onclick='window.open(\"http://www.google.com\")'> " + visor.POI[i].nom + "</h2> "
-						+  " 	    <p><strong>" + visor.POI[i].descripcio + "</strong></p> "
+				softColor = (parseInt(i/2) == i/2) ? "#ffffff" : "#ffffff";
+				cub1 = creaCubDades("Distància","12","Km");
+				cub2 = creaCubDades("Recorregut","99","min");
+				cub3 = creaCubDades("Comença","10:00","hh:mm");
+				cub4 = creaCubDades("Acaba","19:00","hh:mm");
+     			$('#pageListContent').append("<div style='width:100%;height:150px;clear:both;border-bottom: 1px dotted #dddddd;background-color:" + softColor + "'> "
+						+  "  		<div style='padding:0em;width:160px;height:auto;clear:both;float:left;'> "
+						+     		    cub1
+						+   		    cub2
+						+   		    cub3
+						+    		    cub4
+						+  "        </div>"	
+						+  "        <div style='float:left;width:125px'><img style='float:left' width=100 src='images/home.png' /></div>"
+					    // +  "     <img width=16 height=16 src='images/" + visor.POI[i].icon + "' class='ui-li-icon ui-corner-none'>"
+						+  " 	    <div style='height:auto;width:100%;;margin-left:20px	'><div style='margin-left:20px; font-size: 1.8em; cursor:pointer;color:#44aa88;' onclick='window.open(\"http://www.google.com\")'> " + visor.POI[i].nom + "</div> "
+						+  " 	    <div style='width:100%;font-size:0.8em;color:#8f8f8f'>" + visor.POI[i].descripcio + "</div></div> "
 						+  "	    <p class='ui-li-aside'><strong>" + i + 1 +"</strong></p>  "
-						+  "  </a></li>");
+						+  " </div> ");
 			}
 			//pageList.trigger('pagecreate');
 			$('#pageListElementUi').listview('refresh');			
@@ -690,11 +716,8 @@
 				<h1 class="ui-title" role="heading" aria-level="1">Near Events</h1> 
 				<a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow ui-corner-all">Guardar</a>			
 			</div>           
-            <div data-role="content" id="pageListContent"> 
-				<ul data-role="listview" data-inset="true" id="pageListContentUl">
-					<li data-role="list-divider">Friday, October 8, 2010 
-						<span class="ui-li-count">5</span>
-					</li>
+            <div data-role="content" id="pageListContent" style="padding:0em;"> 
+				<!--div style = "width:100%;" id="pageListContentUl">
 					<!--li>	
 						<a href="index.html">
 							<h2>Stephen Weber</h2>
@@ -711,10 +734,8 @@
 							<p class="ui-li-aside"><strong>6:24</strong>PM</p>
 						</a>
 					</li-->		
-				</ul>
-	
-			</div>               
-            <div data-role="footer"  id = "pageListfooter"> 
+			</div>
+		    <div data-role="footer"  id = "pageListfooter" > 
 				<div data-role="data-demo-html">
 					<div data-role="popup" id="popupActPos" class="ui-content" style="max-width:280px">
 						<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
