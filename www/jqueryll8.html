@@ -26,7 +26,7 @@
         <script type="text/javascript" src="http://leafletjs.com/dist/leaflet.js"></script>
         <script type="text/javascript" src="js/leaflet-openweathermap/leaflet-openweathermap.js"></script>
         <script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>
-        <script src="js/leaflet-plugins-master/layer/tile/Google.js"></script>
+        <!--script src="js/leaflet-plugins-master/layer/tile/Google.js"></script>
 		<!-- script src="../js/leaflet-locatecontrol/L.Control.Locate.js" ></script-->
 		<script type="text/javascript">	
 		
@@ -259,22 +259,22 @@
 			//visor.map.setView([data[1][1].split('at: ')[1], data[1][1]].split('ng: ')[1], 7);					
 		}
 
-
 		function creaLlistaPOI() {			
 			var elementLlista = null;
 			for (var i = 0; i < visor.POI.length  ; i++) {	
 				$('#pageListContentUl')
-					.append("<li> <a href='index.html'> "
-						+  " 	<h2> <img width=32 height=32 src='images/" + visor.POI[i].icon + "' />"  + visor.POI[i].nom + "</h2> "
-						+  " 	<p><strong>" + visor.POI[i].descripcio + "</strong></p> "
-						+  " 	<p></p>"
-						+  "	<p class='ui-li-aside'><strong>" + i + 1 +"</strong>PM</p>  "
+					.append("<li> "
+						+  "    <a style='cursor:default' href=''> "
+						+  "    	<img src='images/home.png' >"
+						// +  "    <img width=16 height=16 src='images/" + visor.POI[i].icon + "' class='ui-li-icon ui-corner-none'>"
+						+  " 	    <h2 style='cursor:pointer' onclick='window.open(\"http://www.google.com\")'> " + visor.POI[i].nom + "</h2> "
+						+  " 	    <p><strong>" + visor.POI[i].descripcio + "</strong></p> "
+						+  "	    <p class='ui-li-aside'><strong>" + i + 1 +"</strong></p>  "
 						+  "  </a></li>");
 			}
 			//pageList.trigger('pagecreate');
 			$('#pageListElementUi').listview('refresh');			
 		}	
-		
 		
 		/*function posicionaPuntActual(){
 			var callbacks = $.Callbacks();
@@ -649,7 +649,7 @@
 	
     </head>
     <body>
-    	 <div data-role="page" id="portada" style="width:100%;height:100%;margin:0px;">  
+		<div data-role="page" id="portada" style="width:100%;height:100%;margin:0px;">  
             <div data-role="content" style="width:100%;height:100%;padding:0em" id ="fotoPortada" >   		
            		<a href="#pageone"><img  style="height:100%;width:102 %;" src="images/home.png" />	</a>
 			</div>
@@ -684,7 +684,7 @@
 			</div>
         </div>
 		
-		 <div data-role="page" id="pageList">  
+		<div data-role="page" id="pageList">  
             <div data-role="header"  role="banner" id = "pageListHeader"> 
 				<a href="#pageone" class="ui-btn-left ui-btn ui-icon-back ui-btn-icon-left ui-shadow ui-corner-all">Home</a>
 				<h1 class="ui-title" role="heading" aria-level="1">Near Events</h1> 
@@ -695,7 +695,7 @@
 					<li data-role="list-divider">Friday, October 8, 2010 
 						<span class="ui-li-count">5</span>
 					</li>
-					<li>	
+					<!--li>	
 						<a href="index.html">
 							<h2>Stephen Weber</h2>
 							<p><strong>You've been invited to a meeting at Filament Group in Boston, MA</strong></p>
@@ -710,7 +710,7 @@
 							<p>Hey Stephen, if you're available at 10am tomorrow, we've got a meeting with the jQuery team.</p>
 							<p class="ui-li-aside"><strong>6:24</strong>PM</p>
 						</a>
-					</li>		
+					</li-->		
 				</ul>
 	
 			</div>               
@@ -730,10 +730,8 @@
       			</div>			
 			</div>
         </div>
-		
-  	   
-	   
-	   <div data-role="page" data-dialog="true" data-transition="slidedown" id="pagetwo">
+   
+		<div data-role="page" data-dialog="true" data-transition="slidedown" id="pagetwo">
 		  <div data-role="header">
 		    <h1>Informació associada amb el punt triat</h1>
 		  </div>
