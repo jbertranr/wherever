@@ -579,14 +579,14 @@
 		    
 			var wind = L.OWM.wind({id:'wind'});
 
-			//var ggl = new L.Google('');
+			var ggl = new L.Google('');
 			
-			//var ggl2 = new L.Google('TERRAIN');
+			var ggl2 = new L.Google('TERRAIN');
 	
 			
 			visor.config.layers.base = [osm , Esri_WorldImagery ];
-			visor.config.layers.overlay = [ SST, SSWVW, clouds, cloudscls, temp, precipitation, precipitationcls, rain, raincls, snow, pressure, pressurecntr, wind ];
-			baseLayer(osm);
+			visor.config.layers.overlay = [ ggl, ggl2, SST, SSWVW, clouds, cloudscls, temp, precipitation, precipitationcls, rain, raincls, snow, pressure, pressurecntr, wind ];
+			baseLayer(ggl2);
 			//visor.map.addLayer(ggl);
 			visor.map.setView([51.505, -0.09], 5);	
 
