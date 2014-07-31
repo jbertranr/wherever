@@ -174,7 +174,16 @@
 				'lng' : 0,
 				'alt' : 0,
 				'acc' : 0 };
-			alert('No estan activades les opcions de geolocalització');	
+			alert('No estan activades les opcions de geolocalització');
+			visor.posicioActual = { 'trobat' : 1,
+									'lat' : 43.5419 ,
+									'lng' : 2.447,
+									'alt' : altitude,
+									'acc' : accuracy };		
+			creaLlistaPOI();
+
+
+			
 		};
 		
 		// Create the XHR object.
@@ -338,7 +347,7 @@
 						+  " 	    <div style='width:100%;font-size:0.8em;color:#8f8f8f'>" + visor.POI[i].descripcio + "</div></div> "
 						+  " </div> ");
 			}
-
+			//alert(visor.POI[2].descripcio);
 			//
 			$('#pageListContentUI').listview('refresh');			
 		}	
