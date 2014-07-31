@@ -338,7 +338,8 @@
 						+  " </div> ");
 			}
 			//pageList.trigger('pagecreate');
-			$('#pageListContent').listview('refresh');			
+			$("#pageListContent").trigger("create");
+			//$('#pageListContent').listview('refresh');			
 		}	
 		
 		/*function posicionaPuntActual(){
@@ -755,7 +756,7 @@
 				<a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow ui-corner-all">Guardar</a>			
 			</div>           
             <div data-role="content"> 
-				<div style = "width:100%;height:40px" id="pageListContent"> 
+				<div style = "width:100%;height:100%" id="pageListContent"> 
 				</div>
 					<!--li>	
 						<a href="index.html">
