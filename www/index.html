@@ -337,9 +337,7 @@
 						+  " 	    <div style='width:100%;font-size:0.8em;color:#8f8f8f'>" + visor.POI[i].descripcio + "</div></div> "
 						+  " </div> ");
 			}
-			$("#pageListContent").trigger("create");
-			
-			$('#pageList').trigger('pagecreate');
+
 			//
 			//$('#pageListContent').listview('refresh');			
 		}	
@@ -672,6 +670,13 @@
 			ajustaPortada();
 			inicialitzaMapa();			
 		 });
+		 
+		$( document ).on('pageshow' ,'#pageList', function(){ 
+			$("#pageListContent").trigger("create");
+			//$('#pageList').trigger('pagecreate'); 	
+		});
+
+		 
 		 
 		$( document ).on('pagebeforehide' ,'#pagetwo', function(){ 
 			carregaDades();
