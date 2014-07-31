@@ -337,8 +337,9 @@
 						+  " 	    <div style='width:100%;font-size:0.8em;color:#8f8f8f'>" + visor.POI[i].descripcio + "</div></div> "
 						+  " </div> ");
 			}
-			//pageList.trigger('pagecreate');
 			$("#pageListContent").trigger("create");
+			$('#pageList').trigger('pagecreate');
+			//
 			//$('#pageListContent').listview('refresh');			
 		}	
 		
