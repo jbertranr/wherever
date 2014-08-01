@@ -262,6 +262,8 @@
 								 'seleccionat' : 0,
 								 'icon' : data[i+1][6] };
 				
+				visor.POI[i].distancia = L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+					
 				var iconMap = L.icon({
 					iconUrl: 'images/' + data[i+1][6],
 					shadowUrl: '',
@@ -277,9 +279,9 @@
 				.bindPopup(visor.POI[i].icon);
 			}
 			
+			ordenaPOIDistancia();
 			//visor.map.setView([data[1][1].split('at: ')[1], data[1][1]].split('ng: ')[1], 7);					
 		}
-
 		
 		function creaCubDades( titol, valor, unitat , colorFons){
 			var colorF = (colorFons.length > 4 ) ? colorFons : "#ffffff";
@@ -350,7 +352,7 @@
 			//alert(visor.POI[2].descripcio);
 			//
 			$('#pageListContentUI').listview('refresh');
-			alert (	visor.POI[visor.POI.length-1].descripcio + 	visor.POI[visor.POI.length-1].nom)
+			//alert (	visor.POI[visor.POI.length-1].descripcio + 	visor.POI[visor.POI.length-1].nom)
 		}	
 		
 		/*function posicionaPuntActual(){
@@ -656,6 +658,12 @@
 		        }
 		    });
 		}
+		
+		function ordenaPOIDistancia(){
+			visor.POI.sort(function(a, b){ return Math.abs(a.distancia-b.distancia)});
+		}
+		
+		
 		
 		function creaHome(){
 			
