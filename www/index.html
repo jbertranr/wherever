@@ -46,6 +46,7 @@
 			'icon' : null,
 			'config' : { 'layers' : { 'base' : [], 'overlay' : [] }},
 			'posicioActual' : { 'trobat': 0, 'lat' : 0,	'lng' : 0, 'alt' : 0, 'acc' : 0 },
+			'posicioAnterior' : { 'trobat': 0, 'lat' : 0,	'lng' : 0, 'alt' : 0, 'acc' : 0 },
 			'POI' : [{  'nom' : null , 'descripcio': null , 'lat': null , 'lng':null, 'tema' : null, 'icona' : null , 'seleccionat' : null, 'distancia' : null}]	
 		}
 		
@@ -142,6 +143,7 @@
 			var altitude = position.coords.altitude;
 			var accuracy = position.coords.accuracy;
 			//visor.map.setView([latitude, longitude], 19);
+			var tempPosicioActual = visor.posicioActual;
 			visor.posicioActual = { 'trobat' : 1,
 									'lat' : latitude,
 									'lng' : longitude,
@@ -149,14 +151,18 @@
 									'acc' : accuracy };
 									
 			if (latitude == 0 ) { 
-					alert ('Posició no vàlida');
-					visor.posicioActual = { 'trobat' : 1,
+				alert ('Posició no vàlida');
+				visor.posicioActual = { 'trobat' : 0,
 									'lat' : 41.5419 ,
 									'lng' : 2.447,
 									'alt' : altitude,
 									'acc' : accuracy };					
-					//return false;	
-				}
+				//return false;	
+			}
+			else {
+			
+			
+			}
 						
 			if (visor.modePunt == 'seguiment' ) {
 				L.marker([visor.posicioActual.lat, visor.posicioActual.lng],{icon:visor.smallIcon}).addTo(visor.map);
@@ -165,7 +171,13 @@
 			if (visor.modeNavegacio == 'centrat' ){
 				visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);			
 			}
-			creaLlistaPOI()	;
+			
+			//if (visor.POI[0].length == 0 ) {
+			alert('CreaPOI');
+			creaLlistaPOI();
+			//}	
+			ordenaPOIDistancia();
+			alert('OrdenaPOI');
 		}
 			
 		function errorGeo(error) {				
@@ -180,7 +192,7 @@
 									'lng' : 2.447,
 									'alt' : 1,
 									'acc' : 1 };		
-			creaLlistaPOI();
+			
 
 
 			
@@ -262,7 +274,7 @@
 								 'seleccionat' : 0,
 								 'icon' : data[i+1][6] };
 				
-				visor.POI[i].distancia = L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+				//visor.POI[i].distancia = L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
 					
 				var iconMap = L.icon({
 					iconUrl: 'images/' + data[i+1][6],
@@ -279,7 +291,7 @@
 				.bindPopup(visor.POI[i].icon);
 			}
 			
-			ordenaPOIDistancia();
+			
 			//visor.map.setView([data[1][1].split('at: ')[1], data[1][1]].split('ng: ')[1], 7);					
 		}
 		
@@ -306,9 +318,12 @@
 			var unitats = 'Km';
 			var recorregut = "--";
 			$('#pageListContentUI').html('');
+
+			
 			for (var i = 0; i < visor.POI.length  ; i++) {	
 				softColor = (parseInt(i/2) == i/2) ? "#ffffff" : "#ffffff";				
-				distancia =  L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+				//distancia =  L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+				distancia = visor.POI[i].distancia;
 				//console.log(distancia);
 				if ( distancia < 10000 ) {
 					recorregut = parseInt(distancia * 60 / 3000);	// promig de 3 km/h per persona				
@@ -323,7 +338,8 @@
 					unitats = 'm';					
 				} 
 				else {
-					distancia =  ( distancia > 10000 )  ?  parseInt(distancia/1000) : parseFloat(distancia/1000).toFixed(2);			
+					distancia =  ( distancia > 10000 )  ?  parseInt(distancia/1000) : parseFloat(distancia/1000).toFixed(2);
+					unitats = 'Km';			
 				}
 				cub1 = creaCubDades("Distància",distancia, unitats,"#f2c300");
 				cub2 = creaCubDades("Recorregut",recorregut,"min","#ff4a4a");
@@ -660,7 +676,11 @@
 		}
 		
 		function ordenaPOIDistancia(){
-			visor.POI.sort(function(a, b){ return Math.abs(a.distancia-b.distancia)});
+			// Recalcula distància
+			for (var i = 0; i < visor.POI.length - 1 ; i++) {	
+				visor.POI[i].distancia =  L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+			}
+			visor.POI.sort(function(a, b){ return a.distancia-b.distancia});
 		}
 		
 		
