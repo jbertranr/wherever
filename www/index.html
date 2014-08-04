@@ -14,13 +14,51 @@
 		<![endif]-->
 
 
-		
 		<style>		
 			#map { 
 				margin:-15px;
 				height: 100%;
 				width:100%; 
 			}
+			
+			.cub{
+				font-weight:bold;
+				text-shadow:none;
+				background-color: #ffffff;
+				text-align:center; 
+				height:75px;
+				margin-top: 0em; 
+				margin-left:0em;
+				float: left; 
+				color: rgb(244, 244, 244); 
+				font-family:Helvetica;
+				width: 80px; 
+			}
+			
+			.cubTitol { font-size: 0.6em;  height: 6px; width:100%;margin-top:10px }
+			.cubValor { margin-top:0.2em;font-size: 1.6em;  height: 26px; ; color: #ffffff;width:100%}
+			.cubUnitat { margin-bottom:7px;font-size:0.6em;margin-top:0em;height:15px}
+			
+			.cubPetit{
+				font-weight:bold;
+				text-shadow:none;
+				background-color: #ffffff;
+				text-align:center; 
+				height:37px;				
+				float: left; 
+				color: rgb(244, 244, 244); 
+				font-family:Helvetica;
+				width: 80px;
+				margin:0;
+			}
+			
+			.cubPetitTitol { font-size: 0.6em;  height: 6px; width:100%;margin-top:0px  }
+			.cubPetitValor {margin-top:0 em;font-size: 1.2em;  height: 18px; ; color: #ffffff;width:100%}
+			.cubPetitUnitat {margin-bottom:7px;font-size:0.6em;margin-top:0em;height:10px}
+			.cubsContenidor { width:100%;height:150px;clear:both;border-bottom: 1px dotted #dddddd;}
+			.iconWrapper { float:right;margin-right:30px;margin-top:15px}
+			
+			
 		</style>
         <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
         <script type="text/javascript" src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
@@ -30,726 +68,761 @@
         <script src="js/leaflet-plugins-master/layer/tile/Google.js"></script>
 		<!-- script src="../js/leaflet-locatecontrol/L.Control.Locate.js" ></script-->
 		<script type="text/javascript">	
-		
-		
-		
-		
-		var visor = {
-			'map' : {}, // 	Objecte OpenLayers del mapa
-			'wpid' : 0,
-			'modeNavegacio' : null,
-			'modePunt' : null,
-			'nouPuntEdicio': null,
-			'popup' : null,
-			'greenIcon' : {},
-			'valoracio' : null,
-			'icon' : null,
-			'config' : { 'layers' : { 'base' : [], 'overlay' : [] }},
-			'posicioActual' : { 'trobat': 0, 'lat' : 0,	'lng' : 0, 'alt' : 0, 'acc' : 0 },
-			'posicioAnterior' : { 'trobat': 0, 'lat' : 0,	'lng' : 0, 'alt' : 0, 'acc' : 0 },
-			'POI' : [{  'nom' : null , 'descripcio': null , 'lat': null , 'lng':null, 'tema' : null, 'icona' : null , 'seleccionat' : null, 'distancia' : null}]	
-		}
-		
-		function ajustaFinestres(){			
-			var resizeTimer = null;			
-			if (resizeTimer) clearTimeout(resizeTimer);			
-			resizeTimer = setTimeout(function () {
-				$('#map').width($(window).width());
-				$('#map').height($(window).height() - $('#header').height() - $('#footer').height() - 5);
-				//$('#pageListContent').height($(window).height() - $('#header').height() - $('#footer').height() - 5);
-				visor.map._onResize(); 	;
-			});
-		}
-		
-		function ajustaPortada(){			
-			var resizeTimer = null;			
-			if (resizeTimer) clearTimeout(resizeTimer);			
-			resizeTimer = setTimeout(function () {
-				$('#fotoPortada').height($(window).height());				
-			});
-		}
-		
-		function baseLayer(seleccionada){			
-			 $.each(visor.config.layers.base, function(i,item){
-				 if (visor.map.hasLayer(item)){
-					  visor.map.removeLayer(item);				  
-				 }			 
-			 });
-			 
-			 visor.map.addLayer(seleccionada);
-			 //visor.map(seleccionada);
-			 }
-	
-		function overlayLayer(seleccionada){			
-			 visor.map.addLayer(seleccionada);
-			 seleccionada.setOpacity(0.5);			 
-		}
-		
-		function removeAllOverlay(){
-			 $.each(visor.config.layers.overlay, function(i,item){
-				 if (visor.map.hasLayer(item)){
-					  visor.map.removeLayer(item);
-					  return false;
-				 }			 
-			 });			
-		}
-		
-		function nextOverlayLayer(count){			 
-			var overlayLayersLength = visor.config.layers.overlay.length;
-			var mostra = null;			
+
+			var visor = {
+				'map' : {}, // 	Objecte OpenLayers del mapa
+				'wpid' : 0,
+				'modeNavegacio' : null,
+				'modePunt' : null,
+				'nouPuntEdicio': null,
+				'popup' : null,
+				'greenIcon' : {},
+				'valoracio' : null,
+				'icon' : null,
+				'config' : { 'layers' : { 'base' : [], 'overlay' : [] }},
+				'posicioActual' : { 'trobat': 0, 'lat' : 0,	'lng' : 0, 'alt' : 0, 'acc' : 0 },
+				'posicioAnterior' : { 'trobat': 0, 'lat' : 0,	'lng' : 0, 'alt' : 0, 'acc' : 0 },
+				'POI' : [{  'nom' : null , 'descripcio': null , 'lat': null , 'lng':null, 'tema' : null, 'icona' : null , 'seleccionat' : null, 'distancia' : null}]	
+			}
 			
-			$.each(visor.config.layers.overlay, function(i,item){
-				mostra = i + count;
-				// Selecciona la capa overlay activa   
-				if (visor.map.hasLayer(item)){
-					// Si és el darrer i és demana el següent torna a començar
-					if (i == overlayLayersLength - 1 && count > 0 ){
-						mostra = 0;				
+			// Intentar fer tots els ajustaments disn aquesta funció
+			function ajustaFinestres(){			
+				var resizeTimer = null;			
+				if (resizeTimer) clearTimeout(resizeTimer);			
+				resizeTimer = setTimeout(function () {
+					$('#map').width($(window).width());
+					$('#map').height($(window).height() - $('#header').height() - $('#footer').height() - 8);
+					$('#pageListContent').height($(window).height() - $('#pageListHeader').height() - $('#pageListFooter').height() - 78);
+					visor.map._onResize(); 
+					if 	($(window).width() < 450) {
+						$('.imatgeLlistaPOI').hide(); 
+						$('.cub').addClass( 'cubPetit').removeClass('cub');
+						$('.cubTitol').addClass( 'cubPetitTitol').removeClass('cubTitol');
+						$('.cubValor').addClass( 'cubPetitValor').removeClass('cubValor');
+						$('.cubUnitat').addClass( 'cubPetitUnitat').removeClass('cubUnitat');
+						$('.cubWrapper').width(80);	
+						$('.iconWrapper').css({'marginTop':'9px', 'float':'left', 'marginLeft':'15px'});
+					}					
+				});
+			}
+			
+			function ajustaPortada(){			
+				var resizeTimer = null;			
+				if (resizeTimer) clearTimeout(resizeTimer);			
+				resizeTimer = setTimeout(function () {
+					$('#fotoPortada').height($(window).height());				
+				});
+			}
+			
+			function baseLayer(seleccionada){			
+				 $.each(visor.config.layers.base, function(i,item){
+					 if (visor.map.hasLayer(item)){
+						  visor.map.removeLayer(item);				  
+					 }			 
+				 });
+				 
+				 visor.map.addLayer(seleccionada);
+				 //visor.map(seleccionada);
+				 }
+		
+			function overlayLayer(seleccionada){			
+				 visor.map.addLayer(seleccionada);
+				 seleccionada.setOpacity(0.5);			 
+			}
+			
+			function removeAllOverlay(){
+				 $.each(visor.config.layers.overlay, function(i,item){
+					 if (visor.map.hasLayer(item)){
+						  visor.map.removeLayer(item);
+						  return false;
+					 }			 
+				 });			
+			}
+			
+			function nextOverlayLayer(count){			 
+				var overlayLayersLength = visor.config.layers.overlay.length;
+				var mostra = null;			
+				
+				$.each(visor.config.layers.overlay, function(i,item){
+					mostra = i + count;
+					// Selecciona la capa overlay activa   
+					if (visor.map.hasLayer(item)){
+						// Si és el darrer i és demana el següent torna a començar
+						if (i == overlayLayersLength - 1 && count > 0 ){
+							mostra = 0;				
+						}
+						// Si és el primer i es demana l'anterior
+						if (i == 0 && count < 0 ){
+							mostra = overlayLayersLength - 1;
+						}
+						removeAllOverlay();
+						overlayLayer(visor.config.layers.overlay[mostra]);
+						$('#layerName').html(visor.config.layers.overlay[mostra].options.id);
+						return false;
+					}	
+					// Si no hi ha cap capa activa selecciona la primera
+					if (i == overlayLayersLength - 1) {
+						overlayLayer(visor.config.layers.overlay[0]);
+						$('#layerName').html(visor.config.layers.overlay[0].options.id);
+					}				
+				});					
+			}	
+		
+			function centraPosicioActual(punt,zoom){
+				if (visor.posicioActual.lat != 0){				
+					if(zoom > 1){
+						visor.map.setView([punt.lat, punt.lng], zoom);
 					}
-					// Si és el primer i es demana l'anterior
-					if (i == 0 && count < 0 ){
-						mostra = overlayLayersLength - 1;
+					else{
+						visor.map.setView([punt.lat, punt.lng]);			
 					}
-					removeAllOverlay();
-					overlayLayer(visor.config.layers.overlay[mostra]);
-					$('#layerName').html(visor.config.layers.overlay[mostra].options.id);
-					return false;
-				}	
-				// Si no hi ha cap capa activa selecciona la primera
-				if (i == overlayLayersLength - 1) {
-					overlayLayer(visor.config.layers.overlay[0]);
-					$('#layerName').html(visor.config.layers.overlay[0].options.id);
-				}				
-			});					
-		}	
-	
-		function centraPosicioActual(punt,zoom){
-			if (visor.posicioActual.lat != 0){				
-				if(zoom > 1){
-					visor.map.setView([punt.lat, punt.lng], zoom);
 				}
 				else{
-					visor.map.setView([punt.lat, punt.lng]);			
+				$( "#popupActPos").popup( "close" )	
 				}
 			}
-			else{
-			$( "#popupActPos").popup( "close" )	
+			
+			function successGeo(position) {
+				var latitude = position.coords.latitude;
+				var longitude = position.coords.longitude;
+				var altitude = position.coords.altitude;
+				var accuracy = position.coords.accuracy;
+				//visor.map.setView([latitude, longitude], 19);
+				var tempPosicioActual = visor.posicioActual;
+				visor.posicioActual = { 'trobat' : 1,
+										'lat' : latitude,
+										'lng' : longitude,
+										'alt' : altitude,
+										'acc' : accuracy };
+										
+				if (latitude == 0 ) { 
+					alert ('Posició no vàlida');
+					visor.posicioActual = { 'trobat' : 0,
+										'lat' : 41.5419 ,
+										'lng' : 2.447,
+										'alt' : altitude,
+										'acc' : accuracy };					
+					//return false;	
+				}
+				else {
+				
+				
+				}
+							
+				if (visor.modePunt == 'seguiment' ) {
+					L.marker([visor.posicioActual.lat, visor.posicioActual.lng],{icon:visor.smallIcon}).addTo(visor.map);
+				}
+				
+				if (visor.modeNavegacio == 'centrat' ){
+					visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);			
+				}
+				
+				//if (visor.POI[0].length == 0 ) {
+				//alert('CreaPOI');
+				creaLlistaPOI();
+				//}	
+				ordenaPOIDistancia();
+				//alert('OrdenaPOI');
 			}
-		}
-		
-		function successGeo(position) {
-			var latitude = position.coords.latitude;
-			var longitude = position.coords.longitude;
-			var altitude = position.coords.altitude;
-			var accuracy = position.coords.accuracy;
-			//visor.map.setView([latitude, longitude], 19);
-			var tempPosicioActual = visor.posicioActual;
-			visor.posicioActual = { 'trobat' : 1,
-									'lat' : latitude,
-									'lng' : longitude,
-									'alt' : altitude,
-									'acc' : accuracy };
-									
-			if (latitude == 0 ) { 
-				alert ('Posició no vàlida');
+				
+			function errorGeo(error) {				
 				visor.posicioActual = { 'trobat' : 0,
-									'lat' : 41.5419 ,
-									'lng' : 2.447,
-									'alt' : altitude,
-									'acc' : accuracy };					
-				//return false;	
-			}
-			else {
-			
-			
-			}
-						
-			if (visor.modePunt == 'seguiment' ) {
-				L.marker([visor.posicioActual.lat, visor.posicioActual.lng],{icon:visor.smallIcon}).addTo(visor.map);
-			}
-			
-			if (visor.modeNavegacio == 'centrat' ){
-				visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);			
-			}
-			
-			//if (visor.POI[0].length == 0 ) {
-			alert('CreaPOI');
-			creaLlistaPOI();
-			//}	
-			ordenaPOIDistancia();
-			alert('OrdenaPOI');
-		}
-			
-		function errorGeo(error) {				
-			visor.posicioActual = { 'trobat' : 0,
-				'lat' : 0,
-				'lng' : 0,
-				'alt' : 0,
-				'acc' : 0 };
-			alert('No estan activades les opcions de geolocalització');
-			visor.posicioActual = { 'trobat' : 1,
-									'lat' : 43.5419 ,
-									'lng' : 2.447,
-									'alt' : 1,
-									'acc' : 1 };		
-			
+					'lat' : 0,
+					'lng' : 0,
+					'alt' : 0,
+					'acc' : 0 };
+				alert('No estan activades les opcions de geolocalització');
+				visor.posicioActual = { 'trobat' : 1,
+										'lat' : 43.5419 ,
+										'lng' : 2.447,
+										'alt' : 1,
+										'acc' : 1 };		
+				
 
 
-			
-		};
-		
-		// Create the XHR object.
-		function createCORSRequest(method, url) {
-		  var xhr = new XMLHttpRequest();
-		  if ("withCredentials" in xhr) {
-		    // XHR for Chrome/Firefox/Opera/Safari.
-		    xhr.open(method, url, true);
-		  } else if (typeof XDomainRequest != "undefined") {
-		    // XDomainRequest for IE.
-		    xhr = new XDomainRequest();
-		    xhr.open(method, url);
-		  } else {
-		    // CORS not supported.
-		    xhr = null;
-		  }
-		  return xhr;
-		}
-
-		// Helper method to parse the title tag from the response.
-		function getTitle(text) {
-		  return text.match('<title>(.*)?</title>')[1];
-		}
-
-		// Make the actual CORS request.
-		function makeCorsRequest(url,params) {
-		  // All HTML5 Rocks properties support CORS.
-		
-		  var xhr = createCORSRequest('POST', url);
-		  if (!xhr) {
-		    alert('CORS not supported');
-		    return;
-		  }
-		
-		  //xhr.setRequestHeader('Content-Type', 'application/text/plain'); 
-		  xhr.onreadystatechange = function() {
-			    if(xhr.readyState == 4 && xhr.status == 200) {
-			        alert('Tested OK');
-			        var text = xhr.responseText;
-			        alert('Response from CORS request to ' + url + ': ' + text);
-			    }
+				
 			};
 			
-		
-		  		  // Response handlers.
-		  xhr.onload = function() {
-		    var text = xhr.responseText;
-		    var title = getTitle(text);
-		    return title;
-		  };
+			// Create the XHR object.
+			function createCORSRequest(method, url) {
+			  var xhr = new XMLHttpRequest();
+			  if ("withCredentials" in xhr) {
+				// XHR for Chrome/Firefox/Opera/Safari.
+				xhr.open(method, url, true);
+			  } else if (typeof XDomainRequest != "undefined") {
+				// XDomainRequest for IE.
+				xhr = new XDomainRequest();
+				xhr.open(method, url);
+			  } else {
+				// CORS not supported.
+				xhr = null;
+			  }
+			  return xhr;
+			}
 
-		  xhr.onerror = function() {
-		    alert('Woops, there was an error making the request.');
-		  };
+			// Helper method to parse the title tag from the response.
+			function getTitle(text) {
+			  return text.match('<title>(.*)?</title>')[1];
+			}
 
-		  xhr.send(params);
-		}
-		
-		function carregaDades(){
-
-			var DATA_SERVICE_URL = "https://script.google.com/macros/s/AKfycbw0Z4GBFA_vj2b1CAWMiJA9Zh6Gph770Eth8L8sTuUtth0wQ8o/exec?jsonp=callback";
-			var scriptElement = document.createElement('script');
-			scriptElement.src = DATA_SERVICE_URL;
-			document.getElementsByTagName('head')[0].appendChild(scriptElement);
-		
-		}
-		
-		function callback(data) {			
-			for (var i = 0; i < data.length - 1 ; i++) {			 
+			// Make the actual CORS request.
+			function makeCorsRequest(url,params) {
+			  // All HTML5 Rocks properties support CORS.
+			
+			  var xhr = createCORSRequest('POST', url);
+			  if (!xhr) {
+				alert('CORS not supported');
+				return;
+			  }
+			
+			  //xhr.setRequestHeader('Content-Type', 'application/text/plain'); 
+			  xhr.onreadystatechange = function() {
+					if(xhr.readyState == 4 && xhr.status == 200) {
+						alert('Tested OK');
+						var text = xhr.responseText;
+						alert('Response from CORS request to ' + url + ': ' + text);
+					}
+				};
 				
-				visor.POI[i] = { 'nom' : data[i+1][3],
-								 'lat' : data[i+1][1].split('at: ')[1],
-								 'lng' : data[i+1][2].split('ng: ')[1],
-								 'descripcio' : data[i+1][4],
-								 'valoracio' : data[i+1][5],
-								 'seleccionat' : 0,
-								 'icon' : data[i+1][6] };
-				
-				//visor.POI[i].distancia = L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+			
+					  // Response handlers.
+			  xhr.onload = function() {
+				var text = xhr.responseText;
+				var title = getTitle(text);
+				return title;
+			  };
+
+			  xhr.onerror = function() {
+				alert('Woops, there was an error making the request.');
+			  };
+
+			  xhr.send(params);
+			}
+			
+			function carregaDades(){
+
+				var DATA_SERVICE_URL = "https://script.google.com/macros/s/AKfycbw0Z4GBFA_vj2b1CAWMiJA9Zh6Gph770Eth8L8sTuUtth0wQ8o/exec?jsonp=callback";
+				var scriptElement = document.createElement('script');
+				scriptElement.src = DATA_SERVICE_URL;
+				document.getElementsByTagName('head')[0].appendChild(scriptElement);
+			
+			}
+			
+			function callback(data) {			
+				for (var i = 0; i < data.length - 1 ; i++) {			 
 					
-				var iconMap = L.icon({
-					iconUrl: 'images/' + data[i+1][6],
+					visor.POI[i] = { 'nom' : data[i+1][3],
+									 'lat' : data[i+1][1].split('at: ')[1],
+									 'lng' : data[i+1][2].split('ng: ')[1],
+									 'descripcio' : data[i+1][4],
+									 'valoracio' : data[i+1][5],
+									 'seleccionat' : 0,
+									 'icon' : data[i+1][6] };
+					
+					//visor.POI[i].distancia = L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+						
+					var iconMap = L.icon({
+						iconUrl: 'images/' + data[i+1][6],
+						shadowUrl: '',
+						iconSize:     [30, 30], // size of the icon
+						shadowSize:   [25, 32], // size of the shadow
+						iconAnchor:   [1, 1], // point of the icon which will correspond to marker's location
+						shadowAnchor: [4, 62],  // the same for the shadow
+						popupAnchor:  [15, 0 ] // point from which the popup should open relative to the iconAnchor
+					});		  
+							
+					//if ( data[i][6] !='../images/platja.png' ){ alert ( visor.greenIcon.iconUrl ); }
+					L.marker([visor.POI[i].lat, visor.POI[i].lng],{icon:iconMap}).addTo(visor.map)
+					.bindPopup(visor.POI[i].icon);
+				}
+				
+				
+				//visor.map.setView([data[1][1].split('at: ')[1], data[1][1]].split('ng: ')[1], 7);					
+			}
+			
+			function creaCubDades( titol, valor, unitat , colorFons){
+				var colorF = (colorFons.length > 4 ) ? colorFons : "#ffffff";
+				
+				var cubTitol = $('<div/>',{
+					'class' : 'cubTitol'		
+					})
+					.html(  titol );
+				
+				var cubValor = $('<div/>',{
+					'class' : 'cubValor'	
+					})
+					.html( valor );			
+				
+				var cubUnitat = $('<div/>',{
+					'class' : 'cubUnitat'		
+					})
+					.html( unitat );			
+				
+				
+				var cub =$('<div/>',{
+					'class' : 'cub',
+					'style' : 'background-color:' + colorF 					
+					})
+					.append(cubTitol)
+					.append(cubValor)
+					.append(cubUnitat);				
+				
+				return cub;	
+				
+			}
+					
+			function creaLlistaPOI() {			
+				var elementLlista = null;
+				var cub1 = null;
+				var cub2 = null;
+				var cub3 = null;
+				var cub4 = null;
+				var softColor = null;
+				var distancia = null;
+				var unitat = 'Km';
+				var recorregut = "--";
+				$('#pageListContentUI').html('');
+
+				
+				for (var i = 0; i < visor.POI.length  ; i++) {	
+					softColor = (parseInt(i/2) == i/2) ? "#ffffff" : "#ffffff";				
+					//distancia =  L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+					distancia = visor.POI[i].distancia;
+					//console.log(distancia);
+					if ( distancia < 10000 ) {
+						recorregut = parseInt(distancia * 60 / 3000);	// promig de 3 km/h per persona				
+					} 
+					else {
+						recorregut = '--';
+					}
+					
+					
+					if ( distancia < 1000 ) {
+						distancia = parseInt(distancia);
+						unitat = 'm';					
+					} 
+					else {
+						distancia =  ( distancia > 10000 )  ?  parseInt(distancia/1000) : parseFloat(distancia/1000).toFixed(2);
+						unitats = 'Km';			
+					}
+					cub1 = creaCubDades("Distància",distancia, unitat,"#f2c300");
+					//alert(cub1.html());
+					cub2 = creaCubDades("Recorregut",recorregut,"min","#ff4a4a");
+					cub3 = creaCubDades("Comença","10:00","hh:mm","#9cabe4");
+					cub4 = creaCubDades("Acaba","19:00","hh:mm","#675fd6");     							
+					
+					var cubsContenidorExtern = $('<div/>',{
+						'class' : 'cubsContenidor',
+						'style' : 'background-color:' + softColor
+						})
+
+						.append( ""
+							+  "        <div class='imatgeLlistaPOI' style='float:left;height:125px;'><img style='float:left' width=100 src='images/home.png' /></div>"
+							+  "           	<div class='cubWrapper' style='padding:0em;width:160px;height:auto;float:right;'> "
+							+	cub1[0].outerHTML 
+							+	cub2[0].outerHTML 
+							+	cub3[0].outerHTML 
+							+	cub4[0].outerHTML 
+							+  "            </div>"  
+							// +  "     <img width=16 height=16 src='images/" + visor.POI[i].icon + "' class='ui-li-icon ui-corner-none'>"
+							+  "        <div style='height:51px;margin-right:30px;width:100%;'>"
+							+  "            <div class='iconWrapper'>"
+							+  "        		<img onclick='visor.POI[" + i + "].seleccionat = 1;' width='23' src='images/camp.png' style='float:left'/ >"
+							+  "        		<img width='23' src='images/ciutat.png' style='float:left'/ >"						
+							+  "        		<img width='23' src='images/muntanya.png' style='float:left'/ >"						
+							+  "        		<img width='23' src='images/platja.png' style='float:left'/ >"
+							+  "    		</div>"
+							+  "    	</div>"	
+							+  " 	    <div style='height:auto;width:100%;;margin-left:20px	'>"
+							+  "			<div style='margin-left:0px; font-size: 1.2em; cursor:pointer;color:#44aa88;' onclick='window.open(\"http://www.google.com\")'> " + visor.POI[i].nom + "</div> "
+	//						+  "	    	<p class='ui-li-aside'><strong>" + i + 1 +"</strong></p>  "
+							+  " 	    	<div style='width:100%;font-size:0.6em;color:#8f8f8f'>" + visor.POI[i].descripcio + "</div>"
+							+  "     	</div> ")
+						.appendTo( $('#pageListContentUI'));
+				}
+				//alert(visor.POI[2].descripcio);
+				//
+				$('#pageListContentUI').listview('refresh');
+				ajustaFinestres();
+				//alert(cub);
+				//alert (	visor.POI[visor.POI.length-1].descripcio + 	visor.POI[visor.POI.length-1].nom)
+			}	
+			
+			/*function posicionaPuntActual(){
+				var callbacks = $.Callbacks();
+				callbacks.add( geoFindMe );
+				callbacks.add( centra );
+				callbacks.fire();
+			}
+			
+			function centra(){
+				console.log('centra');
+				
+				if (visor.posicioActual.lat == 0) {
+					//alert('sense ubicació');
+				}
+				else {
+					visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 13);
+				}		
+			}
+			*/
+			
+			function activaGeoposicionament(){		
+				var geo_options = {
+					enableHighAccuracy: true,
+					maximumAge : 30000,
+					timeout : 27000
+				};			
+		
+				visor.wpid = navigator.geolocation.watchPosition(successGeo, errorGeo, geo_options);
+		//		mostraMissatge('buscantPosició');
+			}
+			
+			/*function mostraPunt(){
+				var callbacks = $.Callbacks();
+				callbacks.add( geoFindMe );
+				callbacks.add( actualitzaForm );
+				callbacks.fire();
+			}*/
+			
+			function recuperaAdreca(punt){
+				$.getJSON("http://nominatim.openstreetmap.org/reverse?json_callback=?", 
+					{ format: "json", lat: punt.lat, lon: punt.lng, zoom: 18, addressdetails: 1 },
+					function(data) { 
+						$('#descripcio').val(data.display_name);
+				});			
+			}
+					
+			function recuperaDades( ) {
+			
+				var frm = {URL: null, param:[] };			
+				frm.param[0] = 0;			
+				frm.param[1] = $('#basic').val();
+				
+				if (visor.map.lat = 0) { //TODO pendemt de revisar
+					frm.param[2] = 'lng: ' + String(visor.nouPuntEdicio.lng);
+					frm.param[3] = 'lat: ' + String(visor.nouPuntEdicio.lat);
+				}
+				else {
+					frm.param[2] = 'lng: ' + String(visor.nouPuntEdicio.lng);
+					frm.param[3] = 'lat: ' + String(visor.nouPuntEdicio.lat);
+				}
+
+				frm.param[4] =  $('#descripcio').val();
+				frm.param[5] =  $('#slider-1').val();
+				//frm.param[5] =  $('#slider-1').val();
+				//$( "input[name*='man']" ).val( "has man in it!" );
+				
+			//	$("input[name*='radio-choice']").each(function(){ 
+			//		alert(this.val() ) 
+			// 	});
+				var options = $( ".selector" ).controlgroup( "option" );
+				
+				
+				frm.param[6] =  $('input[name="radio-choice"]:checked', '#varis').val() + '.png';			
+				
+				frm.URL = "https://docs.google.com/forms/d/1xtHPIhEMG68gwCsxX2HFml4mXxh34JMCT6ShnTEBOJI/formResponse";
+				
+				var adrecaURL = 'http://nominatim.openstreetmap.org/reverse?format=json&zoom=18&addressdetails=1';
+				
+
+				
+				
+				/*lat='
+					+  visor.posicioActual.lat 
+					+  '&lon='
+					+   visor.posicioActual.lng;
+				
+
+		
+				$.ajax({
+					url: adrecaURL,
+					 xhrFields: {
+						withCredentials: true
+					},				
+					data: {
+						'lat': visor.posicioActual.lat,
+						'lon': visor.posicioActual.lng
+					},
+					type: "POST",
+					dataType: "json",
+					//contentType: "text/xml; charset=\"utf-8\"",
+					crossDomain: true,
+					success: function (data, textStatus, XMLHttpRequest) {
+						console.log(data);
+					},
+					error: function (XMLHttpRequest, textStatus, errorThrown) {
+						$("#dialog-form").dialog("close");
+						console.log("problemes");
+						console.log(textStatus);
+					}
+				});
+				*/
+			
+				return frm;	
+			}
+				
+			function onMapClick(e) {
+				
+				var contingutPopup =  '<div data-demo-html="true">'
+									+ ' 	<form><fieldset data-role="controlgroup">'
+									+ '			<legend>Ubicació:</legend>'
+									+ ' 		<input type="radio" name="radio-1" id="radio-1" value="GPS" checked="checked" />'
+									+ ' 		<label for="radio-1">Segons GPS - Ubicació Actual</label>'				
+									+ ' 		<input type="radio" name="radio-1" id="radio-2" value="Mapa"  />'
+									+ '			<label for="radio-2">Segons Mapa - Ubicació del mapa</label>'		     	
+									+ ' 	</fieldset></form>'
+									+ ' </div>';		
+				visor.nouPuntEdicio = e.latlng;
+				visor.popup
+					.setLatLng(e.latlng)
+					.setContent("<div onclick='recuperaAdreca( L.latLng(" 
+								+  e.latlng.lat + "," 
+								+  e.latlng.lng + "))' > Clica <a href='#pagetwo'>aquí</a> per guardar el punt"
+							//	+  e.latlng.toString() 
+								+ "</div>")
+							//	+ contingutPopup )
+					.openOn(visor.map);
+			}
+			
+			function inicialitzaMapa(){
+				visor.map = L.map('map');
+				
+				visor.popup = L.popup();
+
+				visor.map.on('click', onMapClick);
+				
+				visor.greenIcon = L.icon({
+					iconUrl: 'images/platja.png',
 					shadowUrl: '',
 					iconSize:     [30, 30], // size of the icon
 					shadowSize:   [25, 32], // size of the shadow
-					iconAnchor:   [1, 1], // point of the icon which will correspond to marker's location
+					iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
 					shadowAnchor: [4, 62],  // the same for the shadow
 					popupAnchor:  [15, 0 ] // point from which the popup should open relative to the iconAnchor
-				});		  
-			  			
-				//if ( data[i][6] !='../images/platja.png' ){ alert ( visor.greenIcon.iconUrl ); }
-				L.marker([visor.POI[i].lat, visor.POI[i].lng],{icon:iconMap}).addTo(visor.map)
-				.bindPopup(visor.POI[i].icon);
-			}
-			
-			
-			//visor.map.setView([data[1][1].split('at: ')[1], data[1][1]].split('ng: ')[1], 7);					
-		}
-		
-		function creaCubDades( titol, valor, unitat , colorFons){
-			var colorF = (colorFons.length > 4 ) ? colorFons : "#ffffff";
-			var cub = 	""
-						// +  "    <a style='cursor:default' href=''> "
-						+  "        <div style='font-weight:bold;text-shadow:none;background-color: " + colorF +  "; text-align:center; height:auto; margin-top: 0em; margin-left:0em;float: left; color: rgb(244, 244, 244); font-family: Helvetica;width: 80px; '>"
-						+  "			<div style=' font-size: 0.8em;  height: 6px; width:100%;margin-top:10px' >" + titol +  "</div> " 
-						+  "			<div style=' margin-top:0.2em;font-size: 1.5em;  height: 26px; ; color: #ffffff;width:100%' > " + valor +  "</div>"
-						+  "            <div style=' margin-bottom:7px;font-size:0.8em;margin-top:0em;height:15px'> " + unitat + " </div> "
-						+  "		</div>"	;
-			return cub;					
-		}
+				});
 				
-		function creaLlistaPOI() {			
-			var elementLlista = null;
-			var cub1 = null;
-			var cub2 = null;
-			var cub3 = null;
-			var cub4 = null;
-			var softColor = null;
-			var distancia = null;
-			var unitats = 'Km';
-			var recorregut = "--";
-			$('#pageListContentUI').html('');
-
-			
-			for (var i = 0; i < visor.POI.length  ; i++) {	
-				softColor = (parseInt(i/2) == i/2) ? "#ffffff" : "#ffffff";				
-				//distancia =  L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
-				distancia = visor.POI[i].distancia;
-				//console.log(distancia);
-				if ( distancia < 10000 ) {
-					recorregut = parseInt(distancia * 60 / 3000);	// promig de 3 km/h per persona				
-				} 
-				else {
-					recorregut = '--';
-				}
+				visor.smallIcon = L.icon({
+					iconUrl: 'images/platja.png',
+					shadowUrl: '',
+					iconSize:     [5, 5], // size of the icon
+					shadowSize:   [3, 3], // size of the shadow
+					iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
+					shadowAnchor: [3, 3],  // the same for the shadow
+					popupAnchor:  [0, 0 ] // point from which the popup should open relative to the iconAnchor
+				});
 				
 				
-				if ( distancia < 1000 ) {
-					distancia = parseInt(distancia);
-					unitats = 'm';					
-				} 
-				else {
-					distancia =  ( distancia > 10000 )  ?  parseInt(distancia/1000) : parseFloat(distancia/1000).toFixed(2);
-					unitats = 'Km';			
-				}
-				cub1 = creaCubDades("Distància",distancia, unitats,"#f2c300");
-				cub2 = creaCubDades("Recorregut",recorregut,"min","#ff4a4a");
-				cub3 = creaCubDades("Comença","10:00","hh:mm","#9cabe4");
-				cub4 = creaCubDades("Acaba","19:00","hh:mm","#675fd6");     							
-				$('#pageListContentUI').append("<div style='width:100%;height:150px;clear:both;border-bottom: 1px dotted #dddddd;background-color:" + softColor + "'> "
-						+  "  		<div style='padding:0em;width:160px;height:auto;clear:both;float:right;'> "
-						+     		    cub1
-						+   		    cub2
-						+   		    cub3
-						+    		    cub4
-						+  "        </div>"	
-						+  "        <div style='float:left;width:125px'><img style='float:left' width=100 src='images/home.png' /></div>"
-					    // +  "     <img width=16 height=16 src='images/" + visor.POI[i].icon + "' class='ui-li-icon ui-corner-none'>"
-						+  "        <div style='height:51px;margin-right:30px;width:100%;'><div style='float:right;margin-right:30px;margin-top:15px'>"
-						+  "        	<img onclick='visor.POI[" + i + "].seleccionat = 1;' width='23' src='images/camp.png' style='float:left'/ >"
-						+  "        	<img width='23' src='images/ciutat.png' style='float:left'/ >"						
-						+  "        	<img width='23' src='images/muntanya.png' style='float:left'/ >"						
-						+  "        	<img width='23' src='images/platja.png' style='float:left'/ >"
-						+  "    </div></div>"		
-						+  " 	    <div style='height:auto;width:100%;;margin-left:20px	'><div style='margin-left:20px; font-size: 1.8em; cursor:pointer;color:#44aa88;' onclick='window.open(\"http://www.google.com\")'> " + visor.POI[i].nom + "</div> "
-//						+  "	    <p class='ui-li-aside'><strong>" + i + 1 +"</strong></p>  "
-						+  " 	    <div style='width:100%;font-size:0.8em;color:#8f8f8f'>" + visor.POI[i].descripcio + "</div></div> "
-						+  " </div> ");
-			}
-			//alert(visor.POI[2].descripcio);
-			//
-			$('#pageListContentUI').listview('refresh');
-			//alert (	visor.POI[visor.POI.length-1].descripcio + 	visor.POI[visor.POI.length-1].nom)
-		}	
-		
-		/*function posicionaPuntActual(){
-			var callbacks = $.Callbacks();
-			callbacks.add( geoFindMe );
-			callbacks.add( centra );
-			callbacks.fire();
-		}
-		
-		function centra(){
-			console.log('centra');
-			
-			if (visor.posicioActual.lat == 0) {
-				//alert('sense ubicació');
-			}
-			else {
-				visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 13);
-			}		
-		}
-		*/
-		
-		function activaGeoposicionament(){		
-			var geo_options = {
-				enableHighAccuracy: true,
-				maximumAge : 30000,
-				timeout : 27000
-			};			
-	
-			visor.wpid = navigator.geolocation.watchPosition(successGeo, errorGeo, geo_options);
-	//		mostraMissatge('buscantPosició');
-		}
-		
-		/*function mostraPunt(){
-			var callbacks = $.Callbacks();
-			callbacks.add( geoFindMe );
-			callbacks.add( actualitzaForm );
-			callbacks.fire();
-		}*/
-		
-		function recuperaAdreca(punt){
-			$.getJSON("http://nominatim.openstreetmap.org/reverse?json_callback=?", 
-				{ format: "json", lat: punt.lat, lon: punt.lng, zoom: 18, addressdetails: 1 },
-				function(data) { 
-					$('#descripcio').val(data.display_name);
-			});			
-		}
 				
-		function recuperaDades( ) {
-		
-			var frm = {URL: null, param:[] };			
-			frm.param[0] = 0;			
-			frm.param[1] = $('#basic').val();
-			
-			if (visor.map.lat = 0) { //TODO pendemt de revisar
-				frm.param[2] = 'lng: ' + String(visor.nouPuntEdicio.lng);
-				frm.param[3] = 'lat: ' + String(visor.nouPuntEdicio.lat);
-			}
-			else {
-				frm.param[2] = 'lng: ' + String(visor.nouPuntEdicio.lng);
-				frm.param[3] = 'lat: ' + String(visor.nouPuntEdicio.lat);
-			}
-
-			frm.param[4] =  $('#descripcio').val();
-			frm.param[5] =  $('#slider-1').val();
-			//frm.param[5] =  $('#slider-1').val();
-			//$( "input[name*='man']" ).val( "has man in it!" );
-			
-		//	$("input[name*='radio-choice']").each(function(){ 
-		//		alert(this.val() ) 
-		// 	});
-			var options = $( ".selector" ).controlgroup( "option" );
-			
-			
-			frm.param[6] =  $('input[name="radio-choice"]:checked', '#varis').val() + '.png';			
-			
-			frm.URL = "https://docs.google.com/forms/d/1xtHPIhEMG68gwCsxX2HFml4mXxh34JMCT6ShnTEBOJI/formResponse";
-			
-			var adrecaURL = 'http://nominatim.openstreetmap.org/reverse?format=json&zoom=18&addressdetails=1';
-			
-
-			
-			
-			/*lat='
-				+  visor.posicioActual.lat 
-				+  '&lon='
-				+   visor.posicioActual.lng;
-			
-
-	
-			$.ajax({
-		        url: adrecaURL,
-		         xhrFields: {
-					withCredentials: true
-				},				
-				data: {
-		            'lat': visor.posicioActual.lat,
-		            'lon': visor.posicioActual.lng
-		        },
-		        type: "POST",
-		        dataType: "json",
-		        //contentType: "text/xml; charset=\"utf-8\"",
-				crossDomain: true,
-		        success: function (data, textStatus, XMLHttpRequest) {
-		            console.log(data);
-		        },
-		        error: function (XMLHttpRequest, textStatus, errorThrown) {
-		            $("#dialog-form").dialog("close");
-		            console.log("problemes");
-		            console.log(textStatus);
-		        }
-		    });
-			*/
-		
-			return frm;	
-		}
-			
-		function onMapClick(e) {
-			
-			var contingutPopup =  '<div data-demo-html="true">'
-								+ ' 	<form><fieldset data-role="controlgroup">'
-								+ '			<legend>Ubicació:</legend>'
-								+ ' 		<input type="radio" name="radio-1" id="radio-1" value="GPS" checked="checked" />'
-								+ ' 		<label for="radio-1">Segons GPS - Ubicació Actual</label>'				
-								+ ' 		<input type="radio" name="radio-1" id="radio-2" value="Mapa"  />'
-								+ '			<label for="radio-2">Segons Mapa - Ubicació del mapa</label>'		     	
-								+ ' 	</fieldset></form>'
-								+ ' </div>';		
-			visor.nouPuntEdicio = e.latlng;
-			visor.popup
-				.setLatLng(e.latlng)
-				.setContent("<div onclick='recuperaAdreca( L.latLng(" 
-							+  e.latlng.lat + "," 
-							+  e.latlng.lng + "))' > Clica <a href='#pagetwo'>aquí</a> per guardar el punt"
-						//	+  e.latlng.toString() 
-							+ "</div>")
-						//	+ contingutPopup )
-				.openOn(visor.map);
-		}
-		
-		function inicialitzaMapa(){
-			visor.map = L.map('map');
-			
-			visor.popup = L.popup();
-
-			visor.map.on('click', onMapClick);
-			
-			visor.greenIcon = L.icon({
-				iconUrl: 'images/platja.png',
-				shadowUrl: '',
-				iconSize:     [30, 30], // size of the icon
-				shadowSize:   [25, 32], // size of the shadow
-				iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
-				shadowAnchor: [4, 62],  // the same for the shadow
-				popupAnchor:  [15, 0 ] // point from which the popup should open relative to the iconAnchor
-			});
-			
-			visor.smallIcon = L.icon({
-				iconUrl: 'images/platja.png',
-				shadowUrl: '',
-				iconSize:     [5, 5], // size of the icon
-				shadowSize:   [3, 3], // size of the shadow
-				iconAnchor:   [0, 0], // point of the icon which will correspond to marker's location
-				shadowAnchor: [3, 3],  // the same for the shadow
-				popupAnchor:  [0, 0 ] // point from which the popup should open relative to the iconAnchor
-			});
-			
-			
-     		
-			// Definició de capes
-			
-			var Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-				attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-			});
-			
-			
-			
-			var icc = L.tileLayer('http://geoserveis.icc.cat/icc_mapesbase/wms/service', {
-					id:'ICGC',
-					layers: 'mtc5m',
-				    format: 'image/png',
-				   // transparent: true,
-				    attribution: 'ICGC'
-				});			
-			
-			var osm = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-				id: 'osm',
-				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-			});
-			
-			var esri = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
-				id:'esri',
-				attribution: 'Tiles &copy; Esri &mdash; Source: US National Park Service',
-				maxZoom: 8
-			});
-			
-			
-			var nexrad = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi", {
-				id:'nexrad',
-				layers: 'nexrad-n0r-900913',
-			    format: 'image/png',
-			    transparent: true,
-			    attribution: "Weather data © 2012 IEM Nexrad"
-			});
-			
-			var SST = L.tileLayer.wms("http://myocean.artov.isac.cnr.it/thredds/wms/SST_MED_SST_L4_NRT_OBSERVATIONS_010_004_c_V2",{
-				id:'SST',
-				layers: 'analysed_sst',
-			    format: 'image/png',
-			    transparent: true,
-			    attribution: ""
-			});
+				// Definició de capes
+				
+				var Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+					attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+				});
 				
 				
-			var SSWVW= L.tileLayer.wms("http://gnoodap.bo.ingv.it/thredds/wms/myov03-med-ingv-cur-an-fc",{
-				id:'SSWVW',
-				layers: 'surface_sea_water_velocity_produced_by_sea_surface_waves',
-			    format: 'image/png',
-			    transparent: true,
-			    attribution: ""
-			});
+				
+				var icc = L.tileLayer('http://geoserveis.icc.cat/icc_mapesbase/wms/service', {
+						id:'ICGC',
+						layers: 'mtc5m',
+						format: 'image/png',
+					   // transparent: true,
+						attribution: 'ICGC'
+					});			
+				
+				var osm = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+					id: 'osm',
+					attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+				});
+				
+				var esri = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
+					id:'esri',
+					attribution: 'Tiles &copy; Esri &mdash; Source: US National Park Service',
+					maxZoom: 8
+				});
+				
+				
+				var nexrad = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi", {
+					id:'nexrad',
+					layers: 'nexrad-n0r-900913',
+					format: 'image/png',
+					transparent: true,
+					attribution: "Weather data © 2012 IEM Nexrad"
+				});
+				
+				var SST = L.tileLayer.wms("http://myocean.artov.isac.cnr.it/thredds/wms/SST_MED_SST_L4_NRT_OBSERVATIONS_010_004_c_V2",{
+					id:'SST',
+					layers: 'analysed_sst',
+					format: 'image/png',
+					transparent: true,
+					attribution: ""
+				});
 					
-			var clouds = L.OWM.clouds({id:'cloud'});
-			
-			var temp = L.OWM.temperature({id:'temp'});
-			
-			var cloudscls = L.OWM.cloudsClassic({id:'cloudscl'});
-		    
-			var precipitation = L.OWM.precipitation({id:'precipitation'});
-		    
-			var precipitationcls = L.OWM.precipitationClassic({id:'precipitationcls'});
-		    
-			var rain = L.OWM.rain({id:'rain'});
-		    
-			var raincls = L.OWM.rainClassic({id:'raincls'});
-		    
-			var snow = L.OWM.snow({id:'snow'});
-		    
-			var pressure = L.OWM.pressure({id:'pressure'});
-		    
-			var pressurecntr = L.OWM.pressureContour({id:'pressurecntr'});
-		    
-			var temp = L.OWM.temperature({id:'temp'});
-		    
-			var wind = L.OWM.wind({id:'wind'});
-
-			var ggl = new L.Google('');
-			
-			var ggl2 = new L.Google('TERRAIN');
-	
-			
-			visor.config.layers.base = [osm , Esri_WorldImagery ];
-			visor.config.layers.overlay = [ ggl, ggl2, SST, SSWVW, clouds, cloudscls, temp, precipitation, precipitationcls, rain, raincls, snow, pressure, pressurecntr, wind ];
-			baseLayer(ggl2);
-			//visor.map.addLayer(ggl);
-			visor.map.setView([51.505, -0.09], 5);	
-
-			var baseMaps = {
-				    "Mapa": visor.config.layers.base[0],
-				    "Satèl·lit": visor.config.layers.base[1]
-			};
-			
-			var overlayMaps ={
-					"Núvols": visor.config.layers.overlay[2],
-					"Temperature": visor.config.layers.overlay[6]
-			};
-			
-			
-			
-		
-		}	
-		
-		function actualitzaForm( frm ) {
+					
+				var SSWVW= L.tileLayer.wms("http://gnoodap.bo.ingv.it/thredds/wms/myov03-med-ingv-cur-an-fc",{
+					id:'SSWVW',
+					layers: 'surface_sea_water_velocity_produced_by_sea_surface_waves',
+					format: 'image/png',
+					transparent: true,
+					attribution: ""
+				});
+						
+				var clouds = L.OWM.clouds({id:'cloud'});
 				
-			$.ajax({
-		        url: frm.URL,
-		         xhrFields: {
-					withCredentials: true
-				},				
-				data: {
-		           // formkey: '1xtHPIhEMG68gwCsxX2HFml4mXxh34JMCT6ShnTEBOJI',		            		  	
-		            'draftResponse': 	"[,,'9343310141278937']",
-		            'entry.1118535733': frm.param[2],
-		            'entry.1366413431': frm.param[3],
-		            'entry.2081033554': frm.param[4],
-		            'entry.334554466': frm.param[1],
-		           	'entry.657320122': frm.param[5],
-					'entry.806099471': frm.param[6],
-		            'fbzx': 9343310141278937,
-		            'pageHistory': 0
-		        },
-		        type: "POST",
-		        dataType: "xml",
-		        crossDomain: true,
-		        success: function (data, textStatus, XMLHttpRequest) {
-		            $("#dialog-form").dialog("close");
-		            //console.log("success");
-		            //console.log(data);
-		        },
-		        error: function (XMLHttpRequest, textStatus, errorThrown) {
-		            $("#dialog-form").dialog("close");
-		            //console.log("error");
-		            //console.log(textStatus);
-		        }
-		    });
-		}
+				var temp = L.OWM.temperature({id:'temp'});
+				
+				var cloudscls = L.OWM.cloudsClassic({id:'cloudscl'});
+				
+				var precipitation = L.OWM.precipitation({id:'precipitation'});
+				
+				var precipitationcls = L.OWM.precipitationClassic({id:'precipitationcls'});
+				
+				var rain = L.OWM.rain({id:'rain'});
+				
+				var raincls = L.OWM.rainClassic({id:'raincls'});
+				
+				var snow = L.OWM.snow({id:'snow'});
+				
+				var pressure = L.OWM.pressure({id:'pressure'});
+				
+				var pressurecntr = L.OWM.pressureContour({id:'pressurecntr'});
+				
+				var temp = L.OWM.temperature({id:'temp'});
+				
+				var wind = L.OWM.wind({id:'wind'});
+
+				var ggl = new L.Google('');
+				
+				var ggl2 = new L.Google('TERRAIN');
 		
-		function ordenaPOIDistancia(){
-			// Recalcula distància
-			for (var i = 0; i < visor.POI.length - 1 ; i++) {	
-				visor.POI[i].distancia =  L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
-			}
-			visor.POI.sort(function(a, b){ return a.distancia-b.distancia});
-		}
-		
-		
-		
-		function creaHome(){
+				
+				visor.config.layers.base = [osm , Esri_WorldImagery ];
+				visor.config.layers.overlay = [ ggl, ggl2, SST, SSWVW, clouds, cloudscls, temp, precipitation, precipitationcls, rain, raincls, snow, pressure, pressurecntr, wind ];
+				baseLayer(ggl2);
+				//visor.map.addLayer(ggl);
+				visor.map.setView([51.505, -0.09], 5);	
+
+				var baseMaps = {
+						"Mapa": visor.config.layers.base[0],
+						"Satèl·lit": visor.config.layers.base[1]
+				};
+				
+				var overlayMaps ={
+						"Núvols": visor.config.layers.overlay[2],
+						"Temperature": visor.config.layers.overlay[6]
+				};
+				
+				
+				
 			
-	        //$.support.cors                 = true;
-	        //$.mobile.allowCrossDomainPages = true;
-	        //$.mobile.pushStateEnabled      = false;
+			}	
+			
+			function actualitzaForm( frm ) {
+					
+				$.ajax({
+					url: frm.URL,
+					 xhrFields: {
+						withCredentials: true
+					},				
+					data: {
+					   // formkey: '1xtHPIhEMG68gwCsxX2HFml4mXxh34JMCT6ShnTEBOJI',		            		  	
+						'draftResponse': 	"[,,'9343310141278937']",
+						'entry.1118535733': frm.param[2],
+						'entry.1366413431': frm.param[3],
+						'entry.2081033554': frm.param[4],
+						'entry.334554466': frm.param[1],
+						'entry.657320122': frm.param[5],
+						'entry.806099471': frm.param[6],
+						'fbzx': 9343310141278937,
+						'pageHistory': 0
+					},
+					type: "POST",
+					dataType: "xml",
+					crossDomain: true,
+					success: function (data, textStatus, XMLHttpRequest) {
+						$("#dialog-form").dialog("close");
+						//console.log("success");
+						//console.log(data);
+					},
+					error: function (XMLHttpRequest, textStatus, errorThrown) {
+						$("#dialog-form").dialog("close");
+						//console.log("error");
+						//console.log(textStatus);
+					}
+				});
+			}
+			
+			function ordenaPOIDistancia(){
+				// Recalcula distància
+				for (var i = 0; i < visor.POI.length - 1 ; i++) {	
+					visor.POI[i].distancia =  L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+				}
+				visor.POI.sort(function(a, b){ return a.distancia-b.distancia});
+			}
+				
+			function creaHome(){
+				
+				//$.support.cors                 = true;
+				//$.mobile.allowCrossDomainPages = true;
+				//$.mobile.pushStateEnabled      = false;
+				 
+				//var titolHeader = 'Aquest és el nou títol';
+				//visor.modePunt = 'seguiment';
+				//visor.modeNavegacio = 'centrat' ;
+				//activaGeoposicionament(); 
+				//visor.modePunt == 'punt' ;
+				//	 $('#index').trigger('pagecreate');
+				//ajustaFinestres();		
+				//var lc = L.control.locate().addTo(visor.map);
+				//lc.locate(); 
+			 }
+
+			$( document ).on('pageshow' ,'#portada', function(){ 
+				$(window).bind('resize', function () {ajustaPortada();});
+				activaGeoposicionament();
+				carregaDades();					 
+				ajustaPortada();
+				inicialitzaMapa();			
+			 });
+				 
+			$( document ).on('pagebeforehide' ,'#pagetwo', function(){ 
+				carregaDades();
+			});
+
+			$( window ).on( 'orientationchange', function( event ) {ajustaPortada(); });
 			 
-			//var titolHeader = 'Aquest és el nou títol';
-			//visor.modePunt = 'seguiment';
-			//visor.modeNavegacio = 'centrat' ;
-			//activaGeoposicionament(); 
-			//visor.modePunt == 'punt' ;
-			//	 $('#index').trigger('pagecreate');
-			//ajustaFinestres();		
-			//var lc = L.control.locate().addTo(visor.map);
-			//lc.locate(); 
-		 }
+			$( document ).on('pageshow','#pageone', function(){
+				$(window).bind('resize', function () {ajustaFinestres();ajustaPortada();});			
+				ajustaFinestres();
+			});
+			
+			$( document ).on('pageshow','#pageList', function(){
+				//$(window).bind('resize', function () {ajustaFinestres();ajustaPortada();});			
+				ajustaFinestres();
+			});
+						
+				//L.control.layers(baseMaps, overlayMaps).addTo(visor.map);	
+				// add an OpenStreetMap tile layer
+				// add a marker in the given location, attach some popup content to it and open the popup
+				/*
+					L.marker([51.5, -0.09]).addTo(map)
+					.bindPopup('A pretty CSS3 popup. <br> Easily customizable.')
+					.openPopup();
+				*/	
 
-		$( document ).on('pageshow' ,'#portada', function(){ 
-			$(window).bind('resize', function () {ajustaPortada();});
-			activaGeoposicionament();
-			carregaDades();					 
-			ajustaPortada();
-			inicialitzaMapa();			
-		 });
-		 
-		
-		 
-		 
-		$( document ).on('pagebeforehide' ,'#pagetwo', function(){ 
-			carregaDades();
-		});
+	/*		function onLocationFound(e) {			
+				var radius = e.accuracy / 2;			
+				L.marker(e.latlng).addTo(map)
+				.bindPopup("You are within " + radius + " meters from this point").openPopup();			
+				L.circle(e.latlng, radius).addTo(map);
+			}
 
-		$( window ).on( 'orientationchange', function( event ) {ajustaPortada(); });
-		 
-		$( document ).on('pageshow','#pageone', function(){
-							
-			$(window).bind('resize', function () {ajustaFinestres();ajustaPortada();});
-		
-			ajustaFinestres();
-		});
-					
-			//L.control.layers(baseMaps, overlayMaps).addTo(visor.map);	
-			// add an OpenStreetMap tile layer
-			// add a marker in the given location, attach some popup content to it and open the popup
-			/*
-				L.marker([51.5, -0.09]).addTo(map)
-				.bindPopup('A pretty CSS3 popup. <br> Easily customizable.')
-				.openPopup();
-			*/	
+			function onLocationError(e) {
+				L.map('map').setView([51.505, -0.09], 13);
+			}
+	*/
 
-		
-
-/*		function onLocationFound(e) {			
-			var radius = e.accuracy / 2;			
-			L.marker(e.latlng).addTo(map)
-			.bindPopup("You are within " + radius + " meters from this point").openPopup();			
-			L.circle(e.latlng, radius).addTo(map);
-		}
-
-		function onLocationError(e) {
-			L.map('map').setView([51.505, -0.09], 13);
-		}
-*/
-
-		function actualitzaFormulari(){		
+			function actualitzaFormulari(){		
 		}
 	
 	</script>
@@ -762,7 +835,7 @@
 			</div>
         </div>
     	 
-    	<div data-role="page" id="pageone">  
+    	<div data-role="page" id="pageone" >  
             <div data-role="header"  role="banner" id = "header"> 
 				<a href="#portada" class="ui-btn-left ui-btn ui-icon-home ui-btn-icon-left ui-shadow ui-corner-all">Home</a>
 				<h1 class="ui-title" role="heading" aria-level="1">SuperDuper</h1> 
@@ -791,7 +864,7 @@
 			</div>
         </div>
 		
-		<div data-role="page" id="pageList"  data-dialog="true" data-transition="slidedown">  
+		<div data-role="page" id="pageList"  data-dialog="false" data-transition="slidedown">  
             <div data-role="header"  role="banner" id = "pageListHeader"> 
 				<a href="#pageone" class="ui-btn-left ui-btn ui-icon-back ui-btn-icon-left ui-shadow ui-corner-all">Home</a>
 				<h1 class="ui-title" role="heading" aria-level="1">Near Events</h1> 
@@ -802,8 +875,9 @@
 
 				</ul>		
 			</div>
-		    <div data-role="footer"  id = "pageListfooter" > 
-			
+		    <div data-role="footer"  id = "pageListfooter" >
+			    	<a style="margin-top: 0px;width:120px" id="layerName" href="#" class="ui-btn ">Layers</a>
+					<a  style="margin-top: 0px;" onclick="nextOverlayLayer(1)" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-btn ui-icon-arrow-r"></a>
 	
 				<!--div data-role="data-demo-html">
 					<div data-role="popup" id="popupActPos" class="ui-content" style="max-width:280px">
