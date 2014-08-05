@@ -5,7 +5,9 @@
 		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"> 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <!-- meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=no; target-densityDpi=device-dpi"-->
-		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css" />
+	    <link rel="stylesheet" href="css/themes/iss.css" />
+	    <link rel="stylesheet" href="css/themes/jquery.mobile.icons.min.css" />	
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.3/jquery.mobile.structure-1.4.3.min.css" />
         <link rel="stylesheet" href="http://leafletjs.com/dist/leaflet.css" />
         <link rel="stylesheet" type="text/css" href="js/leaflet-openweathermap/leaflet-openweathermap.css" />
 		<!-- link rel="stylesheet" href="../js/leaflet-locatecontrol/L.Control.Locate.css" / -->
@@ -61,7 +63,7 @@
 			
 		</style>
         <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
-        <script type="text/javascript" src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+        <script type="text/javascript" src="http://code.jquery.com/mobile/1.4.3/jquery.mobile-1.4.3.min.js"></script>
         <script type="text/javascript" src="http://leafletjs.com/dist/leaflet.js"></script>
         <script type="text/javascript" src="js/leaflet-openweathermap/leaflet-openweathermap.js"></script>
         <script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>
@@ -696,9 +698,9 @@
 				var ggl2 = new L.Google('TERRAIN');
 		
 				
-				visor.config.layers.base = [osm , Esri_WorldImagery ];
-				visor.config.layers.overlay = [ ggl, ggl2, SST, SSWVW, clouds, cloudscls, temp, precipitation, precipitationcls, rain, raincls, snow, pressure, pressurecntr, wind ];
-				baseLayer(ggl2);
+				visor.config.layers.base = [ggl, ggl2, osm , Esri_WorldImagery ];
+				visor.config.layers.overlay = [ SST, SSWVW, clouds, cloudscls, temp, precipitation, precipitationcls, rain, raincls, snow, pressure, pressurecntr, wind ];
+				baseLayer(osm);
 				//visor.map.addLayer(ggl);
 				visor.map.setView([51.505, -0.09], 5);	
 
@@ -779,6 +781,7 @@
 
 			$( document ).on('pageshow' ,'#portada', function(){ 
 				$(window).bind('resize', function () {ajustaPortada();});
+				//$.mobile.page.prototype.options.theme = "b";
 				activaGeoposicionament();
 				carregaDades();					 
 				ajustaPortada();
@@ -836,36 +839,32 @@
         </div>
     	 
     	<div data-role="page" id="pageone" >  
-            <div data-role="header"  role="banner" id = "header"> 
+            <div data-role="header"  role="banner" id = "header" style="z-index: 1; box-shadow:0px 2px 6px #444444;">
+				<div data-type="horizontal" data-role="controlgroup" style="left: 10px; position: fixed; top: 112px;width:20px;" >
+			    	<a data-inline="true" value="on"  style="width:20px;height:25px;" checked="checked" type="radio" onclick=" visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);" href="#" class="ui-btn-left ui-btn ui-icon-navigation ui-btn-icon-notext ui-shadow ui-corner-all "></a>			    	
+				</div>
 				<a href="#portada" class="ui-btn-left ui-btn ui-icon-home ui-btn-icon-left ui-shadow ui-corner-all">Home</a>
-				<h1 class="ui-title" role="heading" aria-level="1">SuperDuper</h1> 
-				<a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow ui-corner-all">Guardar</a>			
+				<h1 class="ui-title" role="heading" aria-level="1">Street Finder</h1> 
+				<a href="#pageList" href="#pageList"  class="ui-btn ui-icon-bullets ui-btn-icon-left ui-shadow ui-corner-all">Llista</a>
 			</div>           
             <div data-role="content" id="contMapa"> 
-
 					<div id="map"></div>
-		
-
 			</div>               
-            <div data-role="footer"  id = "footer"> 
-				<div data-role="data-demo-html">
-					<div data-role="popup" id="popupActPos" class="ui-content" style="max-width:280px">
-						<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
-						<p> Actualitzant la posició</p>
-					</div>	
-			    	<a onclick="baseLayer(visor.config.layers.base[0])" href="#" class="ui-btn ">Map</a>
-			    	<a onclick="baseLayer(visor.config.layers.base[1])" href="#" class="ui-btn ">Sat</a>
-					<a href="#pagetwo" onclick="recuperaAdreca(visor.map.getBounds().getCenter())"  class="ui-btn">Captura</a>
-					<a onclick=" visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);" class="ui-btn">Pos. Actual</a>
-					<a style="margin-top: 0px;" onclick="nextOverlayLayer(-1)" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-btn ui-icon-arrow-l"></a>
-			    	<a style="margin-top: 0px;width:120px" id="layerName" href="#pageList" class="ui-btn ">Layers</a>
-					<a  style="margin-top: 0px;" onclick="nextOverlayLayer(1)" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-btn ui-icon-arrow-r"></a>
+            <div data-role="footer"  id = "footer" style="box-shadow: 0 0 8px 2px rgb(68, 68, 68);"> 
+				<div data-type="horizontal" data-role="controlgroup" style="margin-top: -83px; height: 83px; margin-left: 13px;">
+			    	<a value="on"  checked="checked" type="radio" onclick="baseLayer(visor.config.layers.base[2])" href="#" class="ui-btn ">Map</a>
+			    	<a value="off" checked="checked" type="radio" onclick="baseLayer(visor.config.layers.base[0])" href="#" class="ui-btn ">Sat</a>
+				</div>	
+				<div data-type="horizontal" data-role="controlgroup" style="text-align:center;">	
+					<a onclick="nextOverlayLayer(-1)" href="#" style="width:30px;height:16px;"  class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-icon-arrow-l"></a>
+			    	<a style="margin-top: 0px;width:120px" id="layerName"   class="ui-btn ">Layers</a>
+					<a onclick="nextOverlayLayer(1)" href="#" style="width:30px;height:16px;" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-icon-arrow-r"></a>
       			</div>			
 			</div>
         </div>
 		
 		<div data-role="page" id="pageList"  data-dialog="false" data-transition="slidedown">  
-            <div data-role="header"  role="banner" id = "pageListHeader"> 
+            <div data-role="header"  role="banner" id = "pageListHeader" style="z-index: 1; box-shadow:0px 2px 6px #444444;"> 
 				<a href="#pageone" class="ui-btn-left ui-btn ui-icon-back ui-btn-icon-left ui-shadow ui-corner-all">Home</a>
 				<h1 class="ui-title" role="heading" aria-level="1">Near Events</h1> 
 				<a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow ui-corner-all">Guardar</a>			
@@ -875,7 +874,7 @@
 
 				</ul>		
 			</div>
-		    <div data-role="footer"  id = "pageListfooter" >
+		    <div data-role="footer"  id = "pageListfooter" style="box-shadow: 0 0 8px 2px rgb(68, 68, 68);" >
 			    	<a style="margin-top: 0px;width:120px" id="layerName" href="#" class="ui-btn ">Layers</a>
 					<a  style="margin-top: 0px;" onclick="nextOverlayLayer(1)" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-btn ui-icon-arrow-r"></a>
 	
@@ -897,7 +896,7 @@
    
 		<div data-role="page" data-dialog="true" data-transition="slidedown" id="pagetwo">
 		  <div data-role="header">
-		    <h1>Informació associada amb el punt triat</h1>
+		    <h1>Entrada de dades</h1>
 		  </div>
 		  <!--a href="#popupBasic" data-rel="popup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-transition="pop">Basic Popup</a>
 			<div data-role="popup" id="popupBasic">
@@ -906,7 +905,7 @@
 		  
 		  <div data-role="main" class="ui-content">
 		  	 <form id='varis' action="actualitzaForm($('#basic').val(), '11','11','11','11');" method="post">		    	
-				<label for="basic">Codi Propi</label>
+				<label for="basic">Nom</label>
   				<input type="text" name="name" id="basic" value=""  />
   				<label for="basic">Descripció</label>
   				<input type="text" name="descripcio" id="descripcio" value=""  />  				
@@ -932,17 +931,17 @@
 			     	<label for="radio-choice-4">Ciutat</label>
 				</fieldset>							
 				
-		    	<input value="Enviar Punt" type="button" onclick="var dades=recuperaDades(); actualitzaForm(dades); $.mobile.changePage($('#pageone'), 'pop', false, true);"> 
+		    	<input value="Guardar dades" type="button" onclick="var dades=recuperaDades(); actualitzaForm(dades); $.mobile.changePage($('#pageone'), 'pop', false, true);"> 
 				
 		    	<!--input value="Button" type="button" onclick=" actualitzaForm('DD',visor.map.getBounds().getCenter().lng,visor.map.getBounds().getCenter().lat, ', $('#slider-1').val());"-->
 				
 		    </form>
-		    <a href="#pageone">Go to Page One</a>
+		   
 		  </div>
 		
-		  <div data-role="footer">
-		    <h1>Footer Text In Dialog</h1>
-		  </div>
+		  <!--div data-role="footer">
+		    <h1> </h1>
+		  </div -->
 		</div>
 		
 		
