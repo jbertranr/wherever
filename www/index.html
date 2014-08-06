@@ -794,7 +794,7 @@
 
 			$( window ).on( 'orientationchange', function( event ) {ajustaPortada(); });
 			 
-			$( document ).on('pageshow','#pageone', function(){
+			$( document ).on('pageshow','#pageMap', function(){
 				$(window).bind('resize', function () {ajustaFinestres();ajustaPortada();});			
 				ajustaFinestres();
 			});
@@ -834,40 +834,38 @@
     <body>
 		<div data-role="page" id="portada" style="width:100%;height:100%;margin:0px;">  
             <div data-role="content" style="width:100%;height:100%;padding:0em" id ="fotoPortada" >   		
-           		<a href="#pageone"><img  style="height:100%;width:102 %;" src="images/home.png" />	</a>
+           		<a href="#pageMap"><img  style="height:100%;width:102 %;" src="images/home.png" />	</a>
 			</div>
         </div>
     	 
-    	<div data-role="page" id="pageone" >  
+    	<div data-role="page" id="pageMap" >  
             <div data-role="header"  role="banner" id = "header" style="z-index: 1; box-shadow:0px 2px 6px #444444;">
-				<div data-type="horizontal" data-role="controlgroup" style="left: 10px; position: fixed; top: 112px;width:20px;" >
-			    	<a data-inline="true" value="on"  style="width:20px;height:25px;" checked="checked" type="radio" onclick=" visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);" href="#" class="ui-btn-left ui-btn ui-icon-navigation ui-btn-icon-notext ui-shadow ui-corner-all "></a>			    	
-				</div>
-				<a href="#portada" class="ui-btn-left ui-btn ui-icon-home ui-btn-icon-left ui-shadow ui-corner-all">Home</a>
+				
+			    <a data-inline="true" value="on"  style="" checked="checked" type="radio" onclick=" visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);" href="#" class="ui-btn-left ui-btn ui-icon-navigation ui-btn-icon-left ui-shadow ui-corner-all "> Troba'm </a>			    	
+				
+				<!--a href="#portada" class="ui-btn-left ui-btn ui-icon-home ui-btn-icon-left ui-shadow ui-corner-all">Home</a-->
 				<h1 class="ui-title" role="heading" aria-level="1">Street Finder</h1> 
 				<a href="#pageList" href="#pageList"  class="ui-btn ui-icon-bullets ui-btn-icon-left ui-shadow ui-corner-all">Llista</a>
+				<div data-type="horizontal" data-role="controlgroup" style="position:absolute;top:47px;right:3px;">
+			    	<a value="on"  checked="checked" type="radio" onclick="baseLayer(visor.config.layers.base[2])" href="#" class="ui-btn ">Map</a>
+			    	<a value="off" checked="checked" type="radio" onclick="baseLayer(visor.config.layers.base[0])" href="#" class="ui-btn ">Sat</a>
+				</div>
+				
+				
 			</div>           
             <div data-role="content" id="contMapa"> 
 					<div id="map"></div>
 			</div>               
             <div data-role="footer"  id = "footer" style="box-shadow: 0 0 8px 2px rgb(68, 68, 68);"> 
-				<div data-type="horizontal" data-role="controlgroup" style="margin-top: -83px; height: 83px; margin-left: 13px;">
-			    	<a value="on"  checked="checked" type="radio" onclick="baseLayer(visor.config.layers.base[2])" href="#" class="ui-btn ">Map</a>
-			    	<a value="off" checked="checked" type="radio" onclick="baseLayer(visor.config.layers.base[0])" href="#" class="ui-btn ">Sat</a>
-				</div>	
-				<div data-type="horizontal" data-role="controlgroup" style="text-align:center;">	
-					<a onclick="nextOverlayLayer(-1)" href="#" style="width:30px;height:16px;"  class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-icon-arrow-l"></a>
-			    	<a style="margin-top: 0px;width:120px" id="layerName"   class="ui-btn ">Layers</a>
-					<a onclick="nextOverlayLayer(1)" href="#" style="width:30px;height:16px;" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-icon-arrow-r"></a>
-      			</div>			
+				<a> hola</a>
 			</div>
         </div>
 		
 		<div data-role="page" id="pageList"  data-dialog="false" data-transition="slidedown">  
             <div data-role="header"  role="banner" id = "pageListHeader" style="z-index: 1; box-shadow:0px 2px 6px #444444;"> 
-				<a href="#pageone" class="ui-btn-left ui-btn ui-icon-back ui-btn-icon-left ui-shadow ui-corner-all">Home</a>
+				<a href="#pageMap" class="ui-btn-left ui-btn ui-icon-back ui-btn-icon-left ui-shadow ui-corner-all">Home</a>
 				<h1 class="ui-title" role="heading" aria-level="1">Near Events</h1> 
-				<a href="#" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow ui-corner-all">Guardar</a>			
+				<a href="#pageFilter" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow ui-corner-all">Filtrar</a>			
 			</div>           
             <div data-role="content"  id="pageListContent" > 
 				<ul data-role="listview" id="pageListContentUI" >
@@ -931,14 +929,99 @@
 			     	<label for="radio-choice-4">Ciutat</label>
 				</fieldset>							
 				
-		    	<input value="Guardar dades" type="button" onclick="var dades=recuperaDades(); actualitzaForm(dades); $.mobile.changePage($('#pageone'), 'pop', false, true);"> 
+		    	<input value="Guardar dades" type="button" onclick="var dades=recuperaDades(); actualitzaForm(dades); $.mobile.changePage($('#pageMap'), 'pop', false, true);"> 
 				
 		    	<!--input value="Button" type="button" onclick=" actualitzaForm('DD',visor.map.getBounds().getCenter().lng,visor.map.getBounds().getCenter().lat, ', $('#slider-1').val());"-->
 				
 		    </form>
 		   
 		  </div>
+		</div>  
+		<div data-role="page" data-dialog="true" data-transition="slidedown" id="pageFilter">		 
+			<div data-role="header">
+				<h1>Filtre Esdeveniments</h1>
+			</div>
+			  <!--a href="#popupBasic" data-rel="popup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-transition="pop">Basic Popup</a>
+				<div data-role="popup" id="popupBasic">
+					<p>This is a completely basic popup, no options set.</p>
+				</div -->
+			  
+			<div data-role="main" class="ui-content">
+				<form id='formFilter' action="actualitzaForm($('#basic').val(), '11','11','11','11');" method="post">		    	
+					<!--fieldset data-role="controlgroup">
+						<legend>Favorits</legend>
+						<input type="radio" name="radio-choice" id="radioFavoritsTots" value="platja" checked="checked" />
+						<label for="radioFavoritsTots">Tots</label>					
+						<input type="radio" name="radio-choice" id="radioFavorits" value="platja" />
+						<label for="radioFavorits">Només favorits</label>			
+					</fieldset-->
+					<div class="ui-field-contain">
+						<label style="width:130px" for="veureFavorits"> Només favorits</label>
+						<select name="veureFavorits" id="veureFavorits" data-role="slider" data-mini="false" >
+							<option value="0">No</option>
+							<option value="1">Sí</option>
+						</select>
+					</div>
+					
+					<div class="ui-field-contain">
+						<div data-role="rangeslider">
+							<label for="range-7a">Valoració</label>
+							<input name="range-7a" value="0" step="10" id="range-7a" min="0" max="100" value="0" type="range" />
+							<input name="range-7b" value="100" step="10" id="range-7b" min="0" max="100" value="100" type="range" />
+						</div>
+					</div>					
+					
+					
+					
+					<div class="ui-field-contain">
+						<label>Categoria</label>
+						<select name="categoria" id="categoria">
+							<option value="Tots"> 		Tots		</option>
+							<option value="Platja"> 	Platja		</option>
+							<option value="Muntanya"> 	Muntanya	</option>
+							<option value="Camp"> 		Camp		</option>
+							<option value="Ciutat"> 	Ciutat		</option>
+						</select>	
+					</div>				
 		
+						
+					<div class="ui-field-contain">
+						<label>Distància màxima</label>
+						<select name="distanciaMaxima" id="distanciaMaxima">
+							<option value="200"> 200 m </option>
+							<option value="200"> 500 m </option>
+							<option value="200"> 1 Km </option>
+							<option value="200"> 2 Km </option>
+							<option value="200"> 40 Km </option>
+						</select>	
+					</div>				
+	
+
+					<!--fieldset data-role="controlgroup">
+						<legend>Categoria</legend>
+						<input type="radio" name="radio-choice" id="radioCategoriaTots" value="platja" checked="checked" />
+						<label for="radioCategoriaTots">Tots</label>					
+						<input type="radio" name="radio-choice" id="radioCategoriaPlatja" value="platja" />
+						<label for="radioCategoriaPlatja">Platja</label>				
+						<input type="radio" name="radio-choice" id="radioCategoriaMuntanya" value="muntanya"  />
+						<label for="radioCategoriaMuntanya">Muntanya</label>				
+						<input type="radio" name="radio-choice" id="radioCategoriaCamp" value="camp"  />
+						<label for="radioCategoriaCamp">Camp</label>				
+						<input type="radio" name="radio-choice" id="radioCategoriaCiutat" value="ciutat"  />
+						<label for="radioCategoriaCiutat">Ciutat</label>
+					</fieldset-->
+					
+					
+					
+
+					
+					
+					<input value="Aplicar filtre" type="button" onclick="var dades=recuperaDades(); actualitzaForm(dades); $.mobile.changePage($('#pageMap'), 'pop', false, true);"> 
+					
+					<!--input value="Button" type="button" onclick=" actualitzaForm('DD',visor.map.getBounds().getCenter().lng,visor.map.getBounds().getCenter().lat, ', $('#slider-1').val());"-->
+					
+				</form>			   
+			</div>
 		  <!--div data-role="footer">
 		    <h1> </h1>
 		  </div -->
