@@ -118,8 +118,8 @@
 					$('#pageListContent').height($(window).height() - $('#pageListHeader').height() - $('#pageListFooter').height() - 89);
 					visor.map._onResize(); 
 					if 	($(window).width() < 450) {
-						$('.imatgeLlistaPOI').hide(200); 
-						$('#filtreDistancia').hide(200); 
+						$('.imatgeLlistaPOI').hide(); 
+						$('#filtreDistancia').hide(); 
 						$('.cub').addClass( 'cubPetit').removeClass('cub');
 						$('.cubTitol').addClass( 'cubPetitTitol').removeClass('cubTitol');
 						$('.cubValor').addClass( 'cubPetitValor').removeClass('cubValor');
@@ -128,8 +128,8 @@
 						$('.iconWrapper').css({'marginTop':'9px', 'float':'left', 'marginLeft':'15px'});
 					}
 					if 	($(window).width() >= 450) {
-						$('.imatgeLlistaPOI').show(200); 
-						$('#filtreDistancia').show(200); 
+						$('.imatgeLlistaPOI').show(); 
+						$('#filtreDistancia').show(); 
 					}				
 				});
 			}
@@ -516,7 +516,7 @@
 						distancia =  ( distancia > 10000 )  ?  parseInt(distancia/1000) : parseFloat(distancia/1000).toFixed(2);
 						unitats = 'Km';			
 					}
-					console.log(distancia);
+					//console.log(distancia);
 					cubGran = creaCubDadesGran("",recorregut, 'min',"transparent");
 					//cub1 = creaCubDades("","<span style='font-size:0.6em'>Distància: </span>" + distancia +" "+ "<span style='font-size:0.8em'>m</span>", "","#f2c300");
 					//alert(cub1.html());
@@ -543,7 +543,7 @@
 							+  "         	<div style='margin-top:10px;border-left:2px solid #44aa88;padding:0em;width:160px;height:30px;float:right;'> "
 							+  "				<div style='font-weight:bold;width:100%;font-family:novaFont;margin-left:10px;;color:#44aa88'> <img width='32' src='images/recorregut.png' style='float:left;margin-top:-1px;margin-right:8px'/ > <span style='font-size:1.4em;'> " 
 							+ 						distancia + " </span>"
-							+ 						unitats 
+							+ 						unitat 
 							+  "				</div>"
 							+  "         	</div>" 							
 							+  "         	<div style='margin-top:0px;border-left:2px solid #44aa88;padding:0em;width:160px;height:30px;float:right;'> "
@@ -1046,20 +1046,22 @@
 				</ul>		
 			</div>
 		    <div data-role="footer"  id = "pageListfooter" style="font-style:novaFont;box-shadow: 0 0 8px 2px rgb(68, 68, 68);" >
-				<div data-role="controlgroup" data-type="horizontal" class="ui-mini" style="display:inline-block;">
-					<a onclick= " visor.filtre.seleccionat = 1; creaLlistaPOI(); "   href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-r" >Favs</a>
-					<a onclick= " visor.filtre.seleccionat = 0; creaLlistaPOI(); " href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l">Tots</a>					
+				<div data-role="controlgroup" data-type="horizontal" class="ui-mini" style="display:inline-block;" id="filtreFavs">
+					<a onclick= " visor.filtre.seleccionat = 1; creaLlistaPOI(); "   id ="favSi" type="radio" href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-r" >Favs</a>
+					<a onclick= " visor.filtre.seleccionat = 0; creaLlistaPOI(); " id ="favNo" type="radio" href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l">Tots</a>					
 				</div>	
 
 				<div data-role="controlgroup" data-type="horizontal" class="ui-mini" style="display:inline-block;" id="filtreDistancia">
-					<!-- a onclick= " visor.filtre.distancia = 200; creaLlistaPOI(); "   href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-r" >200m</a-->
-					<a onclick= " visor.filtre.distancia = 500; creaLlistaPOI(); " href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l">500m</a>					
-					<a onclick= " visor.filtre.distancia = 2000; creaLlistaPOI(); "   href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-r" >2 Km</a>
+					<!-- a onclick= " visor.filtre.distancia = 200; creaLlistaPOI(); "    href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-r" >200m</a-->
+					<a onclick= " visor.filtre.distancia = 500; creaLlistaPOI(); " value="22" id="dist500" type="radio" href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ">500m</a>				
+					<a onclick= " visor.filtre.distancia = 2000; creaLlistaPOI(); "   value="23" id="dist2000" type="radio" href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all " >2 Km</a>
 					<!--a onclick= " visor.filtre.distancia = 2000; creaLlistaPOI(); " href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l">2 Km</a-->					
-					<a onclick= " visor.filtre.distancia = 400000; creaLlistaPOI(); "   href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-r" >Tots</a>
+					<a onclick= " visor.filtre.distancia = 400000; creaLlistaPOI(); "   value="24" id="dist400000" type="radio" href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all" >Tots</a>
 				</div>	
 				
-				<a href="#pageFilter" class="ui-btn ui-btn-right ui-icon-plus ui-btn-icon-left ui-shadow ui-corner-all">Opcions</a>	
+				<div data-role="controlgroup" data-type="horizontal" class="ui-mini ui-right" style="display:inline-block;float:right;margin-right:4px" >
+					<a href="#pageFilter" data-role="button"  class="ui-btn ui-shadow ui-btn-icon-plus ui-corner-all">Opcions</a>	
+				</div>	
 				
 				
 				

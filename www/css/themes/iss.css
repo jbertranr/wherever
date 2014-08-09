@@ -308,10 +308,10 @@ html .ui-bar-a .ui-btn:hover,
 html .ui-body-a .ui-btn:hover,
 html body .ui-group-theme-a .ui-btn:hover,
 html head + body .ui-btn.ui-btn-a:hover {
-	background-color: #46a3d8 /*{a-bhover-background-color}*/;
+	background-color: #FFDC73 /*{a-bhover-background-color}*/;
 	border-color: #8c8c8c /*{a-bhover-border}*/;
-	color: #ffffff /*{a-bhover-color}*/;
-	text-shadow: 0 /*{a-bhover-shadow-x}*/ 1px /*{a-bhover-shadow-y}*/ 0 /*{a-bhover-shadow-radius}*/ #3f6eab /*{a-bhover-shadow-color}*/;
+	color: #3f6eab /*{a-bhover-color}*/;
+	text-shadow: 0 /*{a-bhover-shadow-x}*/ 1px /*{a-bhover-shadow-y}*/ 0 /*{a-bhover-shadow-radius}*/ #AAAAAA /*{a-bhover-shadow-color}*/;
 }
 /* Button down */
 .ui-page-theme-a .ui-btn:active,
@@ -373,10 +373,11 @@ html .ui-bar-a .ui-focus,
 html .ui-body-a .ui-focus,
 html body .ui-group-theme-a .ui-focus,
 html head + body .ui-btn-a.ui-focus,
-html head + body .ui-body-a.ui-focus {
-	-webkit-box-shadow: 0 0 12px #1a90c3 /*{a-active-background-color}*/;
-	-moz-box-shadow: 0 0 12px #1a90c3 /*{a-active-background-color}*/;
-	box-shadow: 0 0 12px #1a90c3 /*{a-active-background-color}*/;
+html head + body .ui-body-a.ui-focus {	
+	/*-webkit-box-shadow: 0 0 12px #1a90c3 {a-active-background-color}*/;
+	/*-moz-box-shadow: 0 0 12px #1a90c3 {a-active-background-color}*/;
+	/*box-shadow: 0 0 12px #1a90c3 {a-active-background-color}*/;
+	background-color: #FFFF99 /*{a-active-background-color}*/;
 }
 /* B
 -----------------------------------------------------------------------------------------------------------*/
