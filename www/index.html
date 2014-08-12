@@ -15,7 +15,6 @@
 			<link rel="stylesheet" href="//rawgithub.com/domoritz/leaflet-locatecontrol/gh-pages/src/L.Control.Locate.ie.css"/>
 		<![endif]-->
 
-
 		<style>		
 			
 			@font-face {
@@ -103,6 +102,10 @@
 		<script type="text/javascript">	
 
 			var visor = {
+				'markerGroupPosActual': null,
+				'markerGroupPosActualDetail': null,
+				'markerGroup': null,
+				'markerGroupDetail': null,
 				'llistaInicial': 0,
 				'map' : {}, // 	Objecte Leaflet del mapa
 				'mapDetail' : {}, // 	Objecte Leaflet del mapa Detall
@@ -121,7 +124,7 @@
 				'filtre' : {  'seleccionat' : 0 , 'valoracioMin':0, 'valoracioMax': 100, 'categoria': 'platja.png', 'distancia': 40000 }
 			}
 			
-			// Intentar fer tots els ajustaments disn aquesta funció
+			// Intentar fer tots els ajustaments en aquesta funció
 			function ajustaFinestres(){			
 				var resizeTimer = null;			
 				if (resizeTimer) clearTimeout(resizeTimer);			
@@ -180,16 +183,12 @@
 				 
 			function baseLayerDetail(seleccionada){				// S'haurà d'incorporar a la funció anterior	
 				$.each(visor.config.layers.base, function(i,item){
-					 if (visor.mapDetail.hasLayer(item)){
-						  visor.mapDetail.removeLayer(item);				  
-					 }			 
+					 if (visor.mapDetail.hasLayer(item)){ visor.mapDetail.removeLayer(item);}			 
 				});
 				 
 				visor.mapDetail.addLayer(seleccionada);
 				//visor.map(seleccionada);
-				 }				 
-				 
-				 
+				}				 
 		
 			function overlayLayer(seleccionada){			
 				 visor.map.addLayer(seleccionada);
@@ -234,6 +233,46 @@
 				});					
 			}	
 		
+			function mostraPosicioActual(){
+				var iconSizeX = 30;
+				var iconSizeY = 30;				
+				var iconMap = L.icon({
+					iconUrl: 'images/starSel.png' ,
+					shadowUrl: '',
+					iconSize:     [iconSizeX, iconSizeY], // size of the icon
+					shadowSize:   [25, 32], // size of the shadow
+					iconAnchor:   [1, 1], // point of the icon which will correspond to marker's location
+					shadowAnchor: [4, 62],  // the same for the shadow
+					popupAnchor:  [15, 0 ] // point from which the popup should open relative to the iconAnchor
+				});		  
+						
+				//if ( data[i][6] !='../images/platja.png' ){ alert ( visor.greenIcon.iconUrl ); }
+				
+				var marker = L.marker([visor.posicioActual.lng, visor.posicioActual.lng],{icon:iconMap})
+//					.addTo(visor.map)
+				.bindPopup(
+					"<h2 style='font-family:Arial;font-size:1.5em;height:20px'>" 
+					+ ' Here you are'  
+					+  " <img width='30' src='images/starSel.png' style='float:left;margin-right:2em'/ >"	
+					+ "</h2>" 
+					+ ' Aquesta és la teva posició actual aproximada'					
+					);										
+				
+				var markerDetail = L.marker([visor.posicioActual.lat, visor.posicioActual.lng],{icon:iconMap})
+//					.addTo(visor.map)
+				.bindPopup(
+					"<h2 style='font-family:Arial;font-size:1.5em;height:20px'>" 
+					+ ' Here you are'  
+					+  " <img width='30' src='images/starSel.png' style='float:left;margin-right:2em'/ >"	
+					+ "</h2>" 
+					+ ' Aquesta és la teva posició actual aproximada'					
+					);		
+			
+				visor.markerGroupPosActual = L.layerGroup([marker]).addTo(visor.map);		
+				visor.markerGroupPosActualDetail = L.layerGroup([markerDetail]).addTo(visor.mapDetail);	
+			}	
+			
+			
 			function centraPosicioActual(punt,zoom){
 				if (visor.posicioActual.lat != 0){				
 					if(zoom > 1){
@@ -294,6 +333,8 @@
 				//ordenaPOIDistanciaMain();
 				//alert('OrdenaPOI');
 				visor.posicioAnterior = visor.posicioActual;
+				mostraPosicioActual();
+				
 			}
 				
 			function errorGeo(error) {				
@@ -389,13 +430,37 @@
 									 'valoracio' : data[i+1][5],
 									 'seleccionat' : 0,
 									 'icon' : data[i+1][6] };
-					
-					//visor.POI[i].distancia = L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
-						
+				}
+				
+				dibuixaPOIs();
+				
+				
+				//visor.map.setView([data[1][1].split('at: ')[1], data[1][1]].split('ng: ')[1], 7);					
+			}
+			
+			function dibuixaPOIs(){
+				
+				var iconSizeX = 0;
+				var iconSizeY = 0;
+				var marker = [];
+				var markerDetail = [];
+				// var markerGroup = L.layerGroup();
+				if (visor.markerGroup != null){
+					visor.markerGroup.clearLayers();				
+				}
+				if (visor.markerGroupDetail != null){
+					visor.markerGroupDetail.clearLayers();				
+				}
+				
+				
+				
+				for (var i = 0; i < visor.POI.length - 1 ; i++) {			 
+					iconSizeX = (visor.POI[i].seleccionat == 1) ? 35 : 20;
+					iconSizeY = iconSizeX;
 					var iconMap = L.icon({
-						iconUrl: 'images/' + data[i+1][6],
+						iconUrl: 'images/' + visor.POI[i].icon,
 						shadowUrl: '',
-						iconSize:     [30, 30], // size of the icon
+						iconSize:     [iconSizeX, iconSizeY], // size of the icon
 						shadowSize:   [25, 32], // size of the shadow
 						iconAnchor:   [1, 1], // point of the icon which will correspond to marker's location
 						shadowAnchor: [4, 62],  // the same for the shadow
@@ -403,18 +468,38 @@
 					});		  
 							
 					//if ( data[i][6] !='../images/platja.png' ){ alert ( visor.greenIcon.iconUrl ); }
-					L.marker([visor.POI[i].lat, visor.POI[i].lng],{icon:iconMap}).addTo(visor.map)
+					
+					marker[i] = L.marker([visor.POI[i].lat, visor.POI[i].lng],{icon:iconMap})
+//					.addTo(visor.map)
 					.bindPopup(
 						"<h2 style='font-family:Arial;font-size:1.5em;height:20px'>" 
 						+ visor.POI[i].nom 
 						+  " <img width='30' src='images/" + visor.POI[i].icon + "' style='float:left;margin-right:2em'/ >"	
 						+ "</h2>" 
 						+ visor.POI[i].descripcio						
-						);
+						);										
+					
+					markerDetail[i] = L.marker([visor.POI[i].lat, visor.POI[i].lng],{icon:iconMap})
+//					.addTo(visor.map)
+					.bindPopup(
+						"<h2 style='font-family:Arial;font-size:1.5em;height:20px'>" 
+						+ visor.POI[i].nom 
+						+  " <img width='30' src='images/" + visor.POI[i].icon + "' style='float:left;margin-right:2em'/ >"	
+						+ "</h2>" 
+						+ visor.POI[i].descripcio						
+						);			
+				
+				
+				
+				
+				
 				}
 				
 				
-				//visor.map.setView([data[1][1].split('at: ')[1], data[1][1]].split('ng: ')[1], 7);					
+				//marker2 = marker.slice();
+				visor.markerGroup = L.layerGroup(marker).addTo(visor.map);
+				visor.markerGroupDetail = L.layerGroup(markerDetail).addTo(visor.mapDetail);
+				
 			}
 			
 			function creaCubDades( titol, valor, unitat , colorFons){
@@ -611,7 +696,7 @@
 							+  "    		</div>"
 							+  "    	</div>"	
 							+  " 	    <div style='height:auto;width:100%;margin-left:20px	'>"
-							+  "			<div style='font-family:novaFont; font-size: 1.2em; font-weight:bold;cursor:pointer;color:#44aa88;width:auto' onclick='window.open (\"index.html#pageDetail\",\"_self\",false); visor.mapDetail.setView( [ " + visor.POI[i].lat + "," +  visor.POI[i].lng + " ] , 30); setTimeout(function(){ajustaFinestres()}, 300);'>" + visor.POI[i].nom + "</div> "
+							+  "			<div style='font-family:novaFont; font-size: 1.2em; font-weight:bold;cursor:pointer;color:#44aa88;width:auto' onclick='window.open (\"index.html#pageDetail\",\"_self\",false); visor.mapDetail.setView( [ " + visor.POI[i].lat + "," +  visor.POI[i].lng + " ] , 30); setTimeout(function(){ajustaFinestres()}, 300);creaFitxaPOI(" + i + ");'>" + visor.POI[i].nom + "</div> "
 	//						+  "	    	<p class='ui-li-aside'><strong>" + i + 1 +"</strong></p>  "
 							+  " 	    	<div style='width:92%;font-size:0.7em;color:#8f8f8f;'>" + visor.POI[i].descripcio + "</div>"
 							+  "     	</div> ");
@@ -666,6 +751,116 @@
 				}		
 			}
 			*/
+			
+			function creaFitxaPOI(i){
+				var elementLlista = null;
+				var cub1 = null;
+				var cub2 = null;
+				var cub3 = null;
+				var cub4 = null;
+				var softColor = null;
+				var distancia = null;
+				var unitat = 'Km';
+				var recorregut = "--";	
+				var imatgeStar	= 'star.png';
+				if( visor.llistaInicial < 300002){
+				$('#fitxaDetail').html('');
+				visor.POI[i].distancia =  L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+				//softColor = (parseInt(i/2) == i/2) ? "#ffffff" : "#f2f2f2";				
+				softColor = "#ffffff";	
+				
+				//distancia =  L.latLng(visor.posicioActual.lat, visor.posicioActual.lng).distanceTo(L.latLng(visor.POI[i].lat, visor.POI[i].lng));
+				distancia = visor.POI[i].distancia;
+				//console.log(distancia);
+				if  (visor.POI[i].seleccionat == 1 ) { 
+					softColor =  "#ffffd5";
+					imatgeStar= "starSel.png";	
+				}
+				else{
+					imatgeStar= "star.png";	
+				}
+				
+				if ( distancia < 10000 ) {
+					recorregut = parseInt(distancia * 60 / 3000);	// promig de 3 km/h per persona				
+				} 
+				else {
+					recorregut = '--';
+				}
+				
+				
+				if ( distancia < 1000 ) {
+					distancia = parseInt(distancia);
+					unitat = 'm';					
+				} 
+				else {
+					distancia =  ( distancia > 10000 )  ?  parseInt(distancia/1000) : parseFloat(distancia/1000).toFixed(2);
+					unitats = 'Km';			
+				}
+				//console.log(distancia);
+				cubGran = creaCubDadesGran("",recorregut, 'min',"transparent");
+				//cub1 = creaCubDades("","<span style='font-size:0.6em'>Distància: </span>" + distancia +" "+ "<span style='font-size:0.8em'>m</span>", "","#f2c300");
+				//alert(cub1.html());
+				//cub2 = creaCubDades("","<span style='font-size:0.6em'>Recorregut: </span>" + recorregut+" "+ "<span style='font-size:0.8em'>" + unitat + "</span>", "","#ff4a4a");
+				//cub3 = creaCubDades("","<span style='font-size:0.6em'>Comença: </span>" +"10:00","hh:mm","#9cabe4");
+				//cub4 = creaCubDades("","<span style='font-size:0.8em'>Acaba: </span>" +"19:00","hh:mm","#675fd6");   
+				
+				var cubsContenidorExtern = $('<div/>',{
+					'class' : 'cubsContenidor',
+					'style' : 'background-color:' + softColor
+					})
+					.append( ""
+						+  "         <div class='imatgeLlistaPOI' style='float:left;height:125px;width:auto'>"
+						+  "           	<div class='cubWrapper' style='margin-left:5px;padding:0em;width:auto;height:75px;float:left;'> "
+						+	cubGran[0].outerHTML 
+						+  "            </div>"							
+						+  " 			<div style='margin-left:10px;float:left'  />"
+						+  "         </div>"
+						+  "		 <div class='imatgeLlistaPOI' style='font-weight:bold;float:right;height:125px;width:170px;font-size:1.2em;'>"
+						+  "         	<div style='margin-top:10px;border-left:2px solid #44aa88;padding:0em;width:160px;height:30px;float:right;'> "
+						+  "				<div style='font-weight:bold;width:100%;font-family:novaFont;margin-left:10px;;color:#44aa88'> <img width='32' src='images/recorregut.png' style='float:left;margin-top:-1px;margin-right:8px'/ > <span style='font-size:1.4em;'> " 
+						+ 						distancia + " </span>"
+						+ 						unitat 
+						+  "				</div>"
+						+  "         	</div>" 							
+						+  "         	<div style='margin-top:0px;border-left:2px solid #44aa88;padding:0em;width:160px;height:30px;float:right;'> "
+						+  "				<div style='width:100%;font-family:novaFont;margin-left:10px;color:#44aa88'> <img width='24' src='images/inici.png' style='float:left;margin-top:5px'/ > <span style='font-size:1.4em;'> "
+						+  "					10:00 </span>"
+						+  "				</div>"
+						+  "         	</div>" 
+						+  "         	<div style='margin-top:0px;border-left:2px solid #44aa88;padding:0em;width:160px;height:30px;float:right;'> "
+						+  "				<div style='width:100%;font-family:novaFont;margin-left:10px;color:#44aa88'> <img width='24' src='images/inici.png' style='float:left;margin-top:5px'/ > <span style='font-size:1.4em;'> "
+						+  "					12:00 </span>"
+						+  "				</div>"
+						+  "         	</div>" 							
+						
+						//	+		cub1[0].outerHTML 
+						//	+		cub2[0].outerHTML 
+						//	+		cub3[0].outerHTML 
+						//	+		cub4[0].outerHTML 
+
+						+  "         </div>"  
+						// +  "     <img width=16 height=16 src='images/" + visor.POI[i].icon + "' class='ui-li-icon ui-corner-none'>"
+						+  "        <div style='height:41px;margin-right:30px;width:100%;'>"
+						+  "            <div class='iconWrapper'>"
+						+  "        		<img id='listStar' onclick='if (visor.POI[" + i + "].seleccionat == 1){ visor.POI[" + i + "].seleccionat = 0 } else {visor.POI[" + i + "].seleccionat = 1} ;creaLlistaPOI();' width='23' src='images/" + imatgeStar + "' style='float:left'/ >"
+						+  "        		<img width='30' src='images/ciutat.png' style='float:left'/ >"						
+						+  "        		<img width='30' src='images/muntanya.png' style='float:left'/ >"						
+						+  "        		<img width='30' src='images/platja.png' style='float:left'/ >"
+						+  "    		</div>"
+						+  "    	</div>"	
+						+  " 	    <div style='height:auto;width:100%;margin-left:20px	'>"
+						+  "			<div style='font-family:novaFont; font-size: 1.2em; font-weight:bold;cursor:pointer;color:#44aa88;width:auto' onclick=' visor.mapDetail.setView( [ " + visor.POI[i].lat + "," +  visor.POI[i].lng + " ] , 30);'>" + visor.POI[i].nom + "</div> "
+//						+  "	    	<p class='ui-li-aside'><strong>" + i + 1 +"</strong></p>  "
+						+  " 	    	<div style='width:92%;font-size:0.7em;color:#8f8f8f;'>" + visor.POI[i].descripcio + "</div>"
+						+  "     	</div> ");
+						
+			
+				
+				$('#fitxaDetail').append(cubsContenidorExtern);
+				ajustaFinestres();
+	
+				}
+			}	
 			
 			function activaGeoposicionament(){		
 				var geo_options = {
@@ -837,13 +1032,9 @@
 				});
 				
 				var osm2 = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-					id: 'osm',
+					id: 'osm2',
 					attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 				});
-				
-
-				
-				
 				
 				var esri = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
 					id:'esri',
@@ -902,13 +1093,14 @@
 
 				var ggl = new L.Google('');
 				
-				var ggl2 = new L.Google('TERRAIN');
-		
+				var ggl2 = new L.Google('TERRAIN');		
 				
-				visor.config.layers.base = [ggl, ggl2, osm , Esri_WorldImagery ];
+				visor.config.layers.base = [ggl, ggl2, osm , osm2, Esri_WorldImagery ];
+				
 				visor.config.layers.overlay = [ SST, SSWVW, clouds, cloudscls, temp, precipitation, precipitationcls, rain, raincls, snow, pressure, pressurecntr, wind ];
+				
 				baseLayer(osm);
-				visor.mapDetail.addLayer(osm2);
+				baseLayerDetail(osm2);
 				//visor.map.addLayer(ggl);
 				visor.map.setView([51.505, -0.09], 5);	
 			    visor.mapDetail.setView([51.505, -0.09], 5);	
@@ -916,17 +1108,11 @@
 						"Mapa": visor.config.layers.base[0],
 						"Satèl·lit": visor.config.layers.base[1]
 				};
-				
-				
-				
+
 				var overlayMaps ={
 						"Núvols": visor.config.layers.overlay[2],
 						"Temperature": visor.config.layers.overlay[6]
 				};
-				
-				
-				
-			
 			}	
 			
 			function actualitzaForm( frm ) {
@@ -965,8 +1151,7 @@
 			}
 			
 			function ordenaPOIDistancia(){
-				// Recalcula distància
-				
+				// Recalcula distància				
 				visor.POI.sort(function(a, b){ return a.distancia-b.distancia});
 			}
 				
@@ -995,8 +1180,7 @@
 				visor.filtre.valoracioMax = 	$('#valoracioMax').val();
 				creaLlistaPOI();
 			}
-			
-			
+				
 			$( document ).on('pageshow' ,'#portada', function(){ 
 				$(window).bind('resize', function () {ajustaPortada();});
 				//$.mobile.page.prototype.options.theme = "b";
@@ -1011,9 +1195,14 @@
 				carregaDades();
 			});
 
-			$( window ).on( 'orientationchange', function( event ) {ajustaPortada(); });
-			 
-			$( document ).on('pageshow','#pageMap', function(){
+			$( window ).on( 'orientationchange', function( event ) {ajustaPortada();});
+			
+			$( document ).on('pageshow','#pageMap', function(){				
+				dibuixaPOIs();			
+			});	
+			
+			$( document ).on('pageshow','#pageMap', function(){				
+				//dibuixaPOIs();
 				$(window).bind('resize', function () {ajustaFinestres();ajustaPortada();});			
 				ajustaFinestres();
 			});
@@ -1023,16 +1212,16 @@
 				ajustaFinestres();
 			});
 						
-				//L.control.layers(baseMaps, overlayMaps).addTo(visor.map);	
-				// add an OpenStreetMap tile layer
-				// add a marker in the given location, attach some popup content to it and open the popup
-				/*
-					L.marker([51.5, -0.09]).addTo(map)
-					.bindPopup('A pretty CSS3 popup. <br> Easily customizable.')
-					.openPopup();
-				*/	
+			//L.control.layers(baseMaps, overlayMaps).addTo(visor.map);	
+			// add an OpenStreetMap tile layer
+			// add a marker in the given location, attach some popup content to it and open the popup
+			/*
+				L.marker([51.5, -0.09]).addTo(map)
+				.bindPopup('A pretty CSS3 popup. <br> Easily customizable.')
+				.openPopup();
+			*/	
 
-	/*		function onLocationFound(e) {			
+			/*		function onLocationFound(e) {			
 				var radius = e.accuracy / 2;			
 				L.marker(e.latlng).addTo(map)
 				.bindPopup("You are within " + radius + " meters from this point").openPopup();			
@@ -1042,39 +1231,43 @@
 			function onLocationError(e) {
 				L.map('map').setView([51.505, -0.09], 13);
 			}
-	*/
+			*/
 
-			function actualitzaFormulari(){		
+		function actualitzaFormulari(){		
 		}
 	
 	</script>
 	
     </head>
-    <body>
+    
+	<body>
+		<!--------------------------------  Pàgina Portada ----------------------------------------> 	 
 		<div data-role="page" id="portada" style="width:100%;height:100%;margin:0px;">  
             <div data-role="content" style="width:100%;height:100%;padding:0em" id ="fotoPortada" >   		
            		<a href="#pageMap"><img  style="height:100%;width:102 %;" src="images/home.png" />	</a>
 			</div>
         </div>
-    	 
-    	<div data-role="page" id="pageMap" >  
-            <div data-role="header"  role="banner" id = "header" style="z-index: 1; box-shadow:0px 2px 6px #444444;">
-				
-			    <a data-inline="true" value="on"  style="" checked="checked" type="radio" onclick=" visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);" href="#" class="ui-btn-left ui-btn ui-icon-navigation ui-btn-icon-left ui-shadow ui-corner-all "> Troba'm </a>			    	
-				
+		
+		<!--------------------------------  Pàgina Mapa -------------------------------------------> 	 
+    	<div data-role="page" id="pageMap" > 
+			<!------------------ Header ---------------> 	
+            <div data-role="header"  role="banner" id = "header" style="z-index: 1; box-shadow:0px 2px 6px #444444;">				
+			    <a data-inline="true" value="on"  style="" checked="checked" type="radio" onclick=" visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);" href="#" class="ui-btn-left ui-btn ui-icon-navigation ui-btn-icon-left ui-shadow ui-corner-all "> Troba'm </a>			
 				<!--a href="#portada" class="ui-btn-left ui-btn ui-icon-home ui-btn-icon-left ui-shadow ui-corner-all">Home</a-->
 				<h1 class="ui-title" role="heading" aria-level="1">Street Finder</h1> 
 				<a href="#pageList" href="#pageList"  class="ui-btn ui-icon-bullets ui-btn-icon-left ui-shadow ui-corner-all">Llista</a>
 				<div data-type="horizontal" data-role="controlgroup" style="position:absolute;top:47px;right:3px;">
 			    	<a value="on"  checked="checked" type="radio" onclick="baseLayer(visor.config.layers.base[2])" href="#" class="ui-btn ">Map</a>
 			    	<a value="off" checked="checked" type="radio" onclick="baseLayer(visor.config.layers.base[0])" href="#" class="ui-btn ">Sat</a>
-				</div>
-				
-				
-			</div>           
+				</div>				
+			</div>
+			
+			<!------------------ Content --------------->
             <div data-role="content" id="contMapa"> 
 					<div id="map"></div>
-			</div>               
+			</div>
+			
+			<!------------------ Footer --------------->
             <div data-role="footer"  id = "footer" style="box-shadow: 0 0 8px 2px rgb(68, 68, 68);"> 
 				<div data-type="horizontal" data-role="controlgroup" style="text-align:center;">	
 					<a onclick="nextOverlayLayer(-1)" href="#" style="width:30px;height:16px;"  class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-icon-arrow-l"></a>
@@ -1083,35 +1276,39 @@
       			</div>			
 			</div>
         </div>
-		
-		<div data-role="page" id="pageList"  data-dialog="false" data-transition="slidedown">  
+
+		<!--------------------------------  Pàgina llista -----------------------------------------> 	 
+		<div data-role="page" id="pageList"  data-dialog="false" data-transition="slidedown"> 
+			
+			<!------------------ Header ---------------> 	
             <div data-role="header"  role="banner" id = "pageListHeader" style="z-index: 1; box-shadow:0px 2px 6px #444444;"> 
 				<a href="#pageMap" class="ui-btn-left ui-btn ui-icon-back ui-btn-icon-left ui-shadow ui-corner-all">Mapa</a>
 				<h1 class="ui-title" role="heading" aria-level="1">Near Events</h1> 
 				<a href="#pageFilter" class="ui-btn ui-icon-plus ui-btn-icon-left ui-shadow ui-corner-all">Filtrar</a>			
-			</div>           
+			</div>
+			
+			<!------------------ Content --------------->
             <div data-role="content"  id="pageListContent" > 
 				<ul data-role="listview" id="pageListContentUI" >
-
 				</ul>		
 			</div>
+			
+			<!------------------ Footer --------------->
 		    <div data-role="footer"  id = "pageListfooter" style="font-style:novaFont;box-shadow: 0 0 8px 2px rgb(68, 68, 68);" >
 				<div data-role="controlgroup" data-type="horizontal" class="ui-mini" style="display:inline-block;" id="filtreFavs">
 					<a onclick= " visor.filtre.seleccionat = 1; creaLlistaPOI(); "   id ="favSi" type="radio" href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-r" >Favs</a>
 					<a onclick= " visor.filtre.seleccionat = 0; creaLlistaPOI(); " id ="favNo" type="radio" href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l">Tots</a>					
-				</div>	
-
+				</div>			
 				<div data-role="controlgroup" data-type="horizontal" class="ui-mini" style="display:inline-block;" id="filtreDistancia">
 					<!-- a onclick= " visor.filtre.distancia = 200; creaLlistaPOI(); "    href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-r" >200m</a-->
 					<a onclick= " visor.filtre.distancia = 500; creaLlistaPOI(); " value="22" id="dist500" type="radio" href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ">500m</a>				
 					<a onclick= " visor.filtre.distancia = 2000; creaLlistaPOI(); "   value="23" id="dist2000" type="radio" href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all " >2 Km</a>
 					<!--a onclick= " visor.filtre.distancia = 2000; creaLlistaPOI(); " href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all ui-icon-arrow-l">2 Km</a-->					
 					<a onclick= " visor.filtre.distancia = 400000; creaLlistaPOI(); "   value="24" id="dist400000" type="radio" href="#" data-role="button" class="ui-btn ui-shadow ui-corner-all" >Tots</a>
-				</div>	
-				
+				</div>				
 				<div data-role="controlgroup" data-type="horizontal" class="ui-mini ui-right" style="display:inline-block;float:right;margin-right:4px" >
 					<a href="#pageFilter" data-role="button"  class="ui-btn ui-shadow ui-btn-icon-plus ui-corner-all">Opcions</a>	
-				</div>	
+				</div>
 				
 				<!--div data-role="data-demo-html">
 					<div data-role="popup" id="popupActPos" class="ui-content" style="max-width:280px">
@@ -1125,65 +1322,68 @@
 					<a style="margin-top: 0px;" onclick="nextOverlayLayer(-1)" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-btn ui-icon-arrow-l"></a>
 			    	<a style="margin-top: 0px;width:120px" id="layerName" href="#" class="ui-btn ">Layers</a>
 					<a  style="margin-top: 0px;" onclick="nextOverlayLayer(1)" href="#" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-btn ui-icon-arrow-r"></a>
-      			</div-->			
-
-				</div>
+      			</div-->
+			</div>
         </div>
-   
+
+		<!--------------------------------  Pàgina Entrada de dades -------------------------------> 
 		<div data-role="page" data-dialog="true" data-transition="slidedown" id="pagetwo">
-		  <div data-role="header">
-		    <h1>Entrada de dades</h1>
-		  </div>
-		  <!--a href="#popupBasic" data-rel="popup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-transition="pop">Basic Popup</a>
+			<!------------------ Header ---------------> 	
+			<div data-role="header">
+				<h1>Entrada de dades</h1>
+			</div>
+			
+			<!--a href="#popupBasic" data-rel="popup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-transition="pop">Basic Popup</a>
 			<div data-role="popup" id="popupBasic">
 				<p>This is a completely basic popup, no options set.</p>
-			</div -->
+			</div -->						
 		  
-		  <div data-role="main" class="ui-content">
-		  	 <form id='varis' action="actualitzaForm($('#basic').val(), '11','11','11','11');" method="post">		    	
-				<label for="basic">Nom</label>
-  				<input type="text" name="name" id="basic" value=""  />
-  				<label for="basic">Descripció</label>
-  				<input type="text" name="descripcio" id="descripcio" value=""  />  				
-		       	<label for="slider-1">Valoració</label>
-				<input type="range" name="slider-1" id="slider-1" value="50" step="10" min="0" data-highlight="true" max="100" />					
-				<!--fieldset data-role="controlgroup">
-					<legend>Ubicació:</legend>
-			     	<input type="radio" name="radio-1" id="radio-1" value="GPS" checked="checked" />
-			     	<label for="radio-1">Segons GPS - Ubicació Actual</label>				
-			     	<input type="radio" name="radio-1" id="radio-2" value="Mapa"  />
-			     	<label for="radio-2">Segons Mapa - Ubicació del mapa</label>		     	
-				</fieldset-->				
-				
-				<fieldset data-role="controlgroup">
-					<legend>Tria grup:</legend>
-			     	<input type="radio" name="radio-choice" id="radio-choice-1" value="platja" checked="checked" />
-			     	<label for="radio-choice-1">Platja</label>				
-			     	<input type="radio" name="radio-choice" id="radio-choice-2" value="muntanya"  />
-			     	<label for="radio-choice-2">Muntanya</label>				
-			     	<input type="radio" name="radio-choice" id="radio-choice-3" value="camp"  />
-			     	<label for="radio-choice-3">Camp</label>				
-			     	<input type="radio" name="radio-choice" id="radio-choice-4" value="ciutat"  />
-			     	<label for="radio-choice-4">Ciutat</label>
-				</fieldset>							
-				
-		    	<input value="Guardar dades" type="button" onclick="var dades=recuperaDades(); actualitzaForm(dades); $.mobile.changePage($('#pageMap'), 'pop', false, true);"> 
-				
-		    	<!--input value="Button" type="button" onclick=" actualitzaForm('DD',visor.map.getBounds().getCenter().lng,visor.map.getBounds().getCenter().lat, ', $('#slider-1').val());"-->
-				
-		    </form>
-		   
-		  </div>
-		</div>  
+			<!------------------ Content --------------->
+			<div data-role="main" class="ui-content">
+			    <form id='varis' action="actualitzaForm($('#basic').val(), '11','11','11','11');" method="post">		    	
+					<label for="basic">Nom</label>
+					<input type="text" name="name" id="basic" value=""  />
+					<label for="basic">Descripció</label>
+					<input type="text" name="descripcio" id="descripcio" value=""  />  				
+					<label for="slider-1">Valoració</label>
+					<input type="range" name="slider-1" id="slider-1" value="50" step="10" min="0" data-highlight="true" max="100" />					
+					<!--fieldset data-role="controlgroup">
+						<legend>Ubicació:</legend>
+						<input type="radio" name="radio-1" id="radio-1" value="GPS" checked="checked" />
+						<label for="radio-1">Segons GPS - Ubicació Actual</label>				
+						<input type="radio" name="radio-1" id="radio-2" value="Mapa"  />
+						<label for="radio-2">Segons Mapa - Ubicació del mapa</label>		     	
+					</fieldset-->	
+					<fieldset data-role="controlgroup">
+						<legend>Tria grup:</legend>
+						<input type="radio" name="radio-choice" id="radio-choice-1" value="platja" checked="checked" />
+						<label for="radio-choice-1">Platja</label>				
+						<input type="radio" name="radio-choice" id="radio-choice-2" value="muntanya"  />
+						<label for="radio-choice-2">Muntanya</label>				
+						<input type="radio" name="radio-choice" id="radio-choice-3" value="camp"  />
+						<label for="radio-choice-3">Camp</label>				
+						<input type="radio" name="radio-choice" id="radio-choice-4" value="ciutat"  />
+						<label for="radio-choice-4">Ciutat</label>
+					</fieldset>				
+					<input value="Guardar dades" type="button" onclick="var dades=recuperaDades(); actualitzaForm(dades); $.mobile.changePage($('#pageMap'), 'pop', false, true);">				
+					<!--input value="Button" type="button" onclick=" actualitzaForm('DD',visor.map.getBounds().getCenter().lng,visor.map.getBounds().getCenter().lat, ', $('#slider-1').val());"-->				
+				</form>		   
+			</div>			
+		</div> 
+
+		<!--------------------------------  Pàgina Establir filtres -------------------------------> 		
 		<div data-role="page" data-dialog="true" data-transition="slidedown" id="pageFilter">		 
+			
+			<!------------------ Header ---------------> 		
 			<div data-role="header">
 				<h1>Filtre Esdeveniments</h1>
 			</div>
-			  <!--a href="#popupBasic" data-rel="popup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-transition="pop">Basic Popup</a>
-				<div data-role="popup" id="popupBasic">
-					<p>This is a completely basic popup, no options set.</p>
-				</div -->
-			  
+			
+			<!--a href="#popupBasic" data-rel="popup" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-transition="pop">Basic Popup</a>
+			<div data-role="popup" id="popupBasic">
+				<p>This is a completely basic popup, no options set.</p>
+			</div -->
+			<!------------------ Content ---------------> 		
 			<div data-role="main" class="ui-content">
 				<form id='formFilter' action="activaFiltrePOI()" method="post">		    	
 					<!--fieldset data-role="controlgroup">
@@ -1199,18 +1399,14 @@
 							<option value="0">No</option>
 							<option value="1">Sí</option>
 						</select>
-					</div>
-					
+					</div>					
 					<div class="ui-field-contain">
 						<div data-role="rangeslider">
 							<label for =  "valoracio"> Valoració </label>
 							<input name = "valoracio" value="0" step="10" id="valoracioMin" min="0" max="100" value="0" type="range" />
 							<input name="valoracio" value="100" step="10" id="valoracioMax" min="0" max="100" value="100" type="range" />
 						</div>
-					</div>					
-					
-					
-					
+					</div>				
 					<div class="ui-field-contain">
 						<label>Categoria</label>
 						<select name="categoria" id="categoria">
@@ -1220,9 +1416,7 @@
 							<option value="Camp"> 		Camp		</option>
 							<option value="Ciutat"> 	Ciutat		</option>
 						</select>	
-					</div>				
-		
-						
+					</div>						
 					<div class="ui-field-contain">
 						<label>En un radi de</label>
 						<select name="distanciaMaxima" id="distanciaMaxima">
@@ -1232,9 +1426,7 @@
 							<option value="2000"> 2 Km </option>
 							<option value="40000"> 40 Km </option>
 						</select>	
-					</div>				
-	
-
+					</div>
 					<!--fieldset data-role="controlgroup">
 						<legend>Categoria</legend>
 						<input type="radio" name="radio-choice" id="radioCategoriaTots" value="platja" checked="checked" />
@@ -1247,52 +1439,50 @@
 						<label for="radioCategoriaCamp">Camp</label>				
 						<input type="radio" name="radio-choice" id="radioCategoriaCiutat" value="ciutat"  />
 						<label for="radioCategoriaCiutat">Ciutat</label>
-					</fieldset-->
-					
-					
-					
-
-					
-					
-					<input value="Aplicar filtre" type="button" onclick="activaFiltrePOI(); $.mobile.changePage($('#pageList'));"> 
-					
-					<!--input value="Button" type="button" onclick=" actualitzaForm('DD',visor.map.getBounds().getCenter().lng,visor.map.getBounds().getCenter().lat, ', $('#slider-1').val());"-->
-					
+					</fieldset-->					
+					<input value="Aplicar filtre" type="button" onclick="activaFiltrePOI(); $.mobile.changePage($('#pageList'));">					
+					<!--input value="Button" type="button" onclick=" actualitzaForm('DD',visor.map.getBounds().getCenter().lng,visor.map.getBounds().getCenter().lat, ', $('#slider-1').val());"-->					
 				</form>			   
 			</div>
-		  <!--div data-role="footer">
-		    <h1> </h1>
-		  </div -->
-		</div>
 
-		<div data-role="page" id="pageDetail" >  
+			<!------------------ Footer  ---------------> 		
+			<!--div data-role="footer">
+				<h1> </h1>
+			</div -->
+			
+		</div>
+		
+		<!--------------------------------  Pàgina Detall Element ---------------------------------> 		
+		<div data-role="page" id="pageDetail"> 			
+			
+			<!------------------ Header ---------------> 	
             <div data-role="header"  role="banner" id = "headerDetail" style="z-index: 1; box-shadow:0px 2px 6px #444444;">				
-			    <a data-inline="true" value="on"  style="" checked="checked" type="radio" onclick=" visor.map.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);" href="#" class="ui-btn-left ui-btn ui-icon-navigation ui-btn-icon-left ui-shadow ui-corner-all "> Troba'm </a>			    					
+			    <a data-inline="true" value="on"  style="" checked="checked" type="radio" onclick=" visor.mapDetail.setView([visor.posicioActual.lat, visor.posicioActual.lng], 20);" href="#" class="ui-btn-left ui-btn ui-icon-navigation ui-btn-icon-left ui-shadow ui-corner-all "> Troba'm </a>	
 				<!--a href="#portada" class="ui-btn-left ui-btn ui-icon-home ui-btn-icon-left ui-shadow ui-corner-all">Home</a-->
 				<h1 class="ui-title" role="heading" aria-level="1">Street Finder</h1> 
-				<a href="#pageList" href="#pageList"  class="ui-btn ui-icon-bullets ui-btn-icon-left ui-shadow ui-corner-all">Llista</a>
+				<a href="#pageList"  class="ui-btn ui-icon-bullets ui-btn-icon-left ui-shadow ui-corner-all">Llista</a>
 				<div data-type="horizontal" data-role="controlgroup" style="position:absolute;top:47px;right:3px;">
-			    	<a value="on"  checked="checked" type="radio" onclick="baseLayer(visor.config.layers.base[2])" href="#" class="ui-btn ">Map</a>
-			    	<a value="off" checked="checked" type="radio" onclick="baseLayer(visor.config.layers.base[0])" href="#" class="ui-btn ">Sat</a>
-				</div>
-				
-				
-			</div>           
+			    	<a value="on"  checked="checked" type="radio" onclick="baseLayerDetail(visor.config.layers.base[3])" href="#" class="ui-btn ">Map</a>
+			    	<a value="off" checked="checked" type="radio" onclick="baseLayerDetail(visor.config.layers.base[0])" href="#" class="ui-btn ">Sat</a>
+				</div>			
+			</div>
+			
+			<!----------------- Content ----------------> 
             <div data-role="content" id="contMapDetail"> 
-					<div id="mapDetail"></div>				
-			</div>               
-            <!--div data-role="footer"  id = "footer" style="box-shadow: 0 0 8px 2px rgb(68, 68, 68);"> 
+				<div id="mapDetail"></div>
+				<div id="fitxaDetail" style="margin-top:15px"></div>	
+			</div>
+			
+            <!------------------ Footer ---------------->
+			<!--div data-role="footer"  id = "footer" style="box-shadow: 0 0 8px 2px rgb(68, 68, 68);"> 
 				<div data-type="horizontal" data-role="controlgroup" style="text-align:center;">	
 					<a onclick="nextOverlayLayer(-1)" href="#" style="width:30px;height:16px;"  class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-icon-arrow-l"></a>
 			    	<a style="margin-top: 0px;width:120px" id="layerName"   class="ui-btn ">Layers</a>
 					<a onclick="nextOverlayLayer(1)" href="#" style="width:30px;height:16px;" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-notext ui-icon-arrow-r"></a>
       			</div>			
 			</div-->
-        </div>
-
-		
-		
-		
+			
+        </div>		
 		
     </body>
 </html>   
